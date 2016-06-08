@@ -1,4 +1,4 @@
-// dewarp.js
+// backwarddewarp.js
 // Dewarps a 360-degree fisheye image to a panoramic view.
 //
 // Algorithm is extracted from 
@@ -7,12 +7,6 @@
 // DOI 10.1109/DCABES.2011.49 
 //
 // Author: Toh Jian Feng
-
-// offset values to convert coordinates which are relative to a center origin
-// into coordinates which are relative to a top-left origin.
-// html uses top-left origin.
-const x_coord_offset = 512;
-const y_coord_offset = 512;
 
 // original image dimensions
 var image_width;
@@ -42,7 +36,11 @@ function initialize() {
 		image_circumference = 2 * Math.PI * image_radius;
 
 		var offscreenContext = offscreenCanvas.getContext('2d');
-		offscreenContext.drawImage(image, 0, 0);
+
+		// translate origin of context to center of canvas (511, 511)
+		offscreenContext.translate(511, 511);
+
+		offscreenContext.drawImage(image, -511, -511, image_width, image_height);
 		drawDewarpedImage(offscreenContext);
 	}
 	image.src = '../image.jpg';
@@ -62,6 +60,10 @@ function drawDewarpedImage(offscreenContext) {
 // resultant panoramic image onto the canvas.
 function dewarp(offscreenContext) {
 	var dewarped_ctx = document.getElementById('dewarped').getContext('2d');
+
+	// shift context to bottom left of panoramic canvas.
+	//dewarped_ctx.translate(0, 511);
+
 	var image_data, fisheye_coord, fisheye_coord_x, fisheye_coord_y;
 
 	// nested for loops to iterate through the entire 
