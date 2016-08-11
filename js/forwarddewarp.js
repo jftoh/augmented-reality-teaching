@@ -11,7 +11,7 @@ const original_image_width = 1024;
 const original_image_height = 1024;
 
 // Panorama Image dimensions.
-var pano_image_height = original_image_width / 2;
+var pano_image_height = original_image_width;
 var pano_image_width = 2 * Math.PI * pano_image_height;
 
 window.onload = init();
