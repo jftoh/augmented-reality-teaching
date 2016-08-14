@@ -4,13 +4,11 @@
 <head>
     <title>Augmented Reality for Teaching</title>
 
-    <!-- Uncomment only one of the scripts below. -->
-    <!--<script src="js/backwarddewarp.js"></script> -->
-    <script src="js/forwarddewarp.js"></script>
+    <script src="js/dewarp.js"></script>
 </head>
 
-<body>
-    <canvas id='dewarped'></canvas>
+<body onload="init_pano('dewarped')">
+    <canvas id='dewarped' width="2048" height="1024"></canvas>
 </body>
 
 </html>
