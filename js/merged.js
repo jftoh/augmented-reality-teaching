@@ -1,28 +1,3 @@
-/*
-Copyright (c) 2010, Martin Wengenmayer ( www.cheetah3d.com )
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are 
-permitted provided that the following conditions are met:
-
--Redistributions of source code must retain the above copyright notice, this list of 
-conditions and the following disclaimer. 
-
--Redistributions in binary form must reproduce the above copyright notice, this list 
-of conditions and the following disclaimer in the documentation and/or other materials 
-provided with the distribution. 
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER 
-OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE 
-OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-POSSIBILITY OF SUCH DAMAGE.
-*/
-
 // Original image dimensions according to Kodak PixPro SP360.
 const original_image_width = 1024;
 const original_image_height = 1024;
@@ -34,8 +9,11 @@ var pano_image_width = pano_image_height * 4;
 const FPS = 30;
 const DEG2RAD = Math.PI / 180.0;
 
-//Canvas to which to draw the panorama
+// Canvas to which to draw the dome
 var dome_canvas = null;
+
+// Canvas to draw the equirectangular projection.
+var equi_canvas = null;
 
 //Event state
 var mouseIsDown = false;
@@ -51,7 +29,7 @@ var cam_fov = 90;
 
 //Load image 
 var img_buffer = null;
-var pano_buffer = null;
+
 var img = new Image();
 img.onload = imageLoaded;
 img.src = "image.jpg";
@@ -61,21 +39,27 @@ function init_pano(canvasid) {
     //get canvas and set up call backs
     dome_canvas = document.getElementById('dome');
     dome_canvas.onmousedown = mouseDown;
+
     window.onmousemove = mouseMove;
     window.onmouseup = mouseUp;
     window.onmousewheel = mouseScroll;
     window.onkeydown = keyDown;
+
     draw();
-    //setInterval(draw, 1000/FPS);
 }
 
 function imageLoaded() {
-    //original
-    var original = document.getElementById("original");
-    var original_ctx = original.getContext("2d");
-    original_ctx.drawImage(img, 0, 0);
+    convertImageToBuffer();
 
+    // dewarp original image
+    draw_dewarped();
 
+    // draw equirectangular panorama onto pano canvas
+    draw();
+}
+
+function convertImageToBuffer() {
+    // create buffer canvas to load image
     var buffer = document.createElement("canvas");
     var buffer_ctx = buffer.getContext("2d");
 
@@ -97,47 +81,8 @@ function imageLoaded() {
         img_buffer[j + 1] = buffer_pixels[i + 1];
         img_buffer[j + 2] = buffer_pixels[i + 2];
     }
-
-    draw_dewarped();
-    draw();
-    //renderPanorama(dome_canvas);
 }
 
-
-function mouseDown(e) {
-    mouseIsDown = true;
-    mouseDownPosLastX = e.clientX;
-    mouseDownPosLastY = e.clientY;
-}
-
-function mouseMove(e) {
-    if (mouseIsDown == true) {
-        cam_heading -= (e.clientX - mouseDownPosLastX);
-        cam_pitch += 0.5 * (e.clientY - mouseDownPosLastY);
-        cam_pitch = Math.min(180, Math.max(0, cam_pitch));
-        mouseDownPosLastX = e.clientX;
-        mouseDownPosLastY = e.clientY;
-        draw();
-    }
-}
-
-function mouseUp(e) {
-    mouseIsDown = false;
-    draw();
-}
-
-function mouseScroll(e) {
-    cam_fov += e.wheelDelta / 120;
-    cam_fov = Math.min(90, Math.max(30, cam_fov));
-    draw();
-}
-
-function keyDown(e) {
-    if (e.keyCode == 73) { //i==73 Info
-        displayInfo = !displayInfo;
-        draw();
-    }
-}
 
 function renderPanorama(canvas) {
     if (canvas != null) {
@@ -228,11 +173,8 @@ function draw() {
 
 function draw_dewarped() {
     var dewarped = document.getElementById("dewarped");
-    if (dewarped != null && dewarped.getContext != null) {
-        var dewarped_ctx = dewarped.getContext("2d");
-        dewarped_ctx.fillStyle = "rgba(0, 0, 0, 1)";
-        dewarped_ctx.fillRect(0, 0, dewarped.width, dewarped.height);
 
+    if (dewarped != null && dewarped.getContext != null) {
         dewarp(dewarped);
     }
 }
@@ -241,13 +183,9 @@ function dewarp(canvas) {
     if (img_buffer != null && canvas != null) {
         var ctx = canvas.getContext("2d");
         var imgdata = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
         var buffer = imgdata.data;
 
-        //pano_buffer = new Array(2048 * 1024 * 3);
-
         var radius, theta, para_true_x, para_true_y, x, y;
-
         var dest_offset, src_offset;
 
         for (var i = 0; i < pano_image_height; i++) {
@@ -275,13 +213,42 @@ function dewarp(canvas) {
                     buffer[dest_offset] = img_buffer[src_offset];
                     buffer[dest_offset + 1] = img_buffer[src_offset + 1];
                     buffer[dest_offset + 2] = img_buffer[src_offset + 2];
-                    //pano_buffer[dest_offset + 3] = img_buffer[src_offset + 3];
-
                 }
             }
         }
 
         ctx.putImageData(imgdata, 0, 0);
-
     }
+}
+
+//--------------//
+// Mouse Events //
+//--------------//
+
+function mouseDown(e) {
+    mouseIsDown = true;
+    mouseDownPosLastX = e.clientX;
+    mouseDownPosLastY = e.clientY;
+}
+
+function mouseMove(e) {
+    if (mouseIsDown == true) {
+        cam_heading -= (e.clientX - mouseDownPosLastX);
+        cam_pitch += 0.5 * (e.clientY - mouseDownPosLastY);
+        cam_pitch = Math.min(180, Math.max(0, cam_pitch));
+        mouseDownPosLastX = e.clientX;
+        mouseDownPosLastY = e.clientY;
+        draw();
+    }
+}
+
+function mouseUp(e) {
+    mouseIsDown = false;
+    draw();
+}
+
+function mouseScroll(e) {
+    cam_fov += e.wheelDelta / 120;
+    cam_fov = Math.min(90, Math.max(30, cam_fov));
+    draw();
 }
