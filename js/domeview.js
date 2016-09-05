@@ -1,4 +1,6 @@
-// dome.js
+// domeview.js
+// Converts a 360-degree camera video feed to a
+// first-person perspective.
 // author: Toh Jian Feng
 
 /*-----------*/
@@ -10,8 +12,8 @@ const original_image_width = 1024;
 const original_image_height = 1024;
 
 // Panorama Image dimensions.
-const equi_image_width = 2048;
-const equi_image_height = 512;
+const equi_image_height = original_image_width / 2;
+const equi_image_width = equi_image_height * 4;
 
 // conversion constant from degrees to radians
 const DEG2RAD = Math.PI / 180.0;
@@ -20,20 +22,12 @@ const DEG2RAD = Math.PI / 180.0;
 /* Buffers and Canvases */
 /*----------------------*/
 
+var fisheye_canvas = null;
 var dome_canvas = null;
 var equi_canvas = null;
-var fisheye_canvas = null;
 
-var fisheye_pixels = null;
-var equi_pixels = null;
-
-/*--------------------*/
-/* Mouse Event States */
-/*--------------------*/
-
-var mouseIsDown = false;
-var mouseDownPosLastX = 0;
-var mouseDownPosLastY = 0;
+var fisheye_img_buffer = null;
+var equi_buffer = null;
 
 /*---------------*/
 /* Camera States */
@@ -60,41 +54,52 @@ setInterval(function() {
     x = (x + 1) % 50000;
 }, 100);
 
-
+/**
+ * onload function for the image element.
+ */
 function onImgLoad() {
-    getFisheyeImgData();
-
-    // dewarp original image
-    dewarp();
-
-    // draw equirectangular panorama onto pano canvas
-    render();
+	convertImgToBuffer();
+	dewarp();
+	render();
 }
 
-function getFisheyeImgData() {
-    if (fisheye_canvas != null) {
-        var fisheye_ctx = fisheye_canvas.getContext("2d");
+/*------------------*/
+/* Image Conversion */
+/*------------------*/
 
-        fisheye_ctx.drawImage(original_img, 0, 0);
+function convertImgToBuffer() {
+	var fisheye_ctx = fisheye_canvas.getContext("2d");
 
-        fisheye_pixels = fisheye_ctx.getImageData(0, 0, fisheye_canvas.width, fisheye_canvas.height).data;
+	fisheye_canvas.width = original_img.width;
+	fisheye_canvas.height = original_img.height;
+
+	fisheye_ctx.drawImage(original_img, 0, 0);
+
+	var fisheye_imgdata = fisheye_ctx.getImageData(0, 0, fisheye_canvas.height, fisheye_canvas.height);
+	var fisheye_pixels = fisheye_imgdata.data;
+
+    fisheye_img_buffer = new Array(original_img.width * original_img.height * 3);
+    for (var i = 0, j = 0; i < fisheye_pixels.length; i += 4, j += 3) {
+        fisheye_img_buffer[j] = fisheye_pixels[i];
+        fisheye_img_buffer[j + 1] = fisheye_pixels[i + 1];
+        fisheye_img_buffer[j + 2] = fisheye_pixels[i + 2];
     }
 }
 
 function dewarp() {
-	if (fisheye_canvas != null) {
+	if (fisheye_img_buffer != null) {
+		
 		var equi_ctx = equi_canvas.getContext("2d");
-		equi_pixels = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height).data;
+		var equi_imgdata = equi_ctx.getImageData(0, 0, equi_image_width, equi_image_height * 2);
+		var equi_pixels = equi_imgdata.data;
 
 		var radius, theta, para_true_x, para_true_y, x, y;
         var dest_offset, src_offset;
 
         for (var i = 0; i < equi_image_height; i++) {
-            
-            radius = (equi_image_height - i);
-            
             for (var j = 0; j < equi_image_width; j++) {
-            
+                radius = (equi_image_height - i);
+
                 theta = 2 * Math.PI * -j / (4 * equi_image_height);
 
                 // find true (x, y) coordinates based on parametric
@@ -108,13 +113,20 @@ function dewarp() {
                 y = equi_image_height - Math.round(para_true_y);
 
                 dest_offset = 4 * ((equi_image_height - 1 - i) * equi_image_width + (equi_image_width - 1 - j));
-                src_offset = 4 * (x * original_image_width + y);
+                src_offset = 3 * (x * original_image_width + y);
 
-				equi_pixels[dest_offset] = fisheye_pixels[src_offset];
-				equi_pixels[dest_offset + 1] = fisheye_pixels[src_offset + 1];
-				equi_pixels[dest_offset + 2] = fisheye_pixels[src_offset + 2];
-                equi_pixels[dest_offset + 3] = fisheye_pixels[src_offset + 3];
+				equi_pixels[dest_offset] = fisheye_img_buffer[src_offset];
+				equi_pixels[dest_offset + 1] = fisheye_img_buffer[src_offset + 1];
+				equi_pixels[dest_offset + 2] = fisheye_img_buffer[src_offset + 2];
+
             }
+        }
+
+        equi_buffer = new Array(equi_image_width * equi_image_height * 2 * 3);
+        for (var i = 0, j = 0; i < equi_pixels.length; i += 4, j += 3) {
+        	equi_buffer[j] = equi_pixels[i];
+        	equi_buffer[j + 1] = equi_pixels[i + 1];
+        	equi_buffer[j + 2] = equi_pixels[i + 2];
         }
 	}
 }
@@ -127,10 +139,10 @@ function renderPanorama(canvas) {
     if (canvas != null) {
         var ctx = canvas.getContext("2d");
         var imgdata = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        var dome_pixels = imgdata.data;
+        var dome_buffer = imgdata.data;
 
-        var src_width = equi_canvas.width;
-        var src_height = equi_canvas.height;
+        var src_width = equi_image_width;
+        var src_height = equi_image_height * 2;
         var dest_width = canvas.width;
         var dest_height = canvas.height;
 
@@ -170,13 +182,12 @@ function renderPanorama(canvas) {
                 var phi_i = Math.floor(phi_fac * phi);
 
                 var dest_offset = 4 * (i * dest_width + j);
-                var src_offset = 4 * (theta_i * src_width + phi_i);
+                var src_offset = 3 * (theta_i * src_width + phi_i);
 
-                dome_pixels[dest_offset] = equi_pixels[src_offset];
-                dome_pixels[dest_offset + 1] = equi_pixels[src_offset + 1];
-                dome_pixels[dest_offset + 2] = equi_pixels[src_offset + 2];
-                dome_pixels[dest_offset + 3] = equi_pixels[src_offset + 3];
-
+                dome_buffer[dest_offset] = equi_buffer[src_offset];
+                dome_buffer[dest_offset + 1] = equi_buffer[src_offset + 1];
+                dome_buffer[dest_offset + 2] = equi_buffer[src_offset + 2];
+                // dome_buffer[dest_offset + 3] = equi_buffer[src_offset + 3];
             }
         }
 
@@ -186,68 +197,41 @@ function renderPanorama(canvas) {
 }
 
 function render() {
-    if (dome_canvas != null && dome_canvas.getContext != null) {
-
-        var ctx = dome_canvas.getContext("2d");
-
-        //clear canvas
-        ctx.fillStyle = "rgba(0, 0, 0, 1)";
-        ctx.fillRect(0, 0, dome_canvas.width, dome_canvas.height);
-
-        renderPanorama(dome_canvas);
-    }
+	if (dome_canvas != null && dome_canvas.getContext != null) {
+		renderPanorama(dome_canvas);
+	}
 }
 
-function init_pano() {
-    fisheye_canvas = document.createElement('canvas');
-    fisheye_canvas.width = original_img.width;
-    fisheye_canvas.height = original_img.height;
+/*---------------------*/
+/* Body Initialization */
+/*---------------------*/
 
-    equi_canvas = document.createElement('canvas');
-    equi_canvas.width = equi_image_width;
-    equi_canvas.height = equi_image_height * 2;
+/**
+ * Initializes the canvas.
+ * Called upon loading of the webpage body.
+ */
+function init_dome() {
+	dome_canvas = document.getElementById('dome');
+	fisheye_canvas = document.createElement('canvas');
+	equi_canvas = document.createElement('canvas');
+	clear_canvas();
 
-    //get canvas and set up call backs
-    dome_canvas = document.getElementById('dome');
-    dome_canvas.onmousedown = mouseDown;
-
+	/*
+	dome_canvas.onmousedown = mouseDown;
     window.onmousemove = mouseMove;
     window.onmouseup = mouseUp;
     window.onmousewheel = mouseScroll;
-
-    // render();
+    */
 }
 
-//--------------//
-// Mouse Events //
-//--------------//
+/**
+ * Rewrites the canvas with a black screen.
+ */
+function clear_canvas() {
+	if (dome_canvas != null) {
+		var ctx = dome_canvas.getContext("2d");
 
-function mouseDown(e) {
-    mouseIsDown = true;
-    mouseDownPosLastX = e.clientX;
-    mouseDownPosLastY = e.clientY;
+		ctx.fillStyle = "rgba(0, 0, 0, 1)";
+		ctx.fillRect(0, 0, dome_canvas.width, dome_canvas.height);
+	}
 }
-
-function mouseMove(e) {
-    if (mouseIsDown == true) {
-        cam_heading -= (e.clientX - mouseDownPosLastX);
-        cam_pitch += 0.5 * (e.clientY - mouseDownPosLastY);
-        cam_pitch = Math.min(180, Math.max(0, cam_pitch));
-        mouseDownPosLastX = e.clientX;
-        mouseDownPosLastY = e.clientY;
-        render();
-    }
-}
-
-function mouseUp(e) {
-    mouseIsDown = false;
-    render();
-}
-
-function mouseScroll(e) {
-    cam_fov += e.wheelDelta / 120;
-    cam_fov = Math.min(90, Math.max(30, cam_fov));
-    render();
-}
-
-

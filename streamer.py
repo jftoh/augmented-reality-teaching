@@ -2,6 +2,7 @@
 
 import socket
 import os
+import sys
 
 # connects socket to PixPro and sends HTTP GET message
 def init_socket():
@@ -43,3 +44,5 @@ init_socket()
 
 while True:
     write_image_to_file()
+    sys.stdout.write('.')
+    sys.stdout.flush()
