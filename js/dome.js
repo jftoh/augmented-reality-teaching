@@ -1,13 +1,12 @@
-// dome.js
-// author: Toh Jian Feng
+// dome.js author: Toh Jian Feng
 
 /*-----------*/
 /* Constants */
 /*-----------*/
 
-// Original image dimensions according to Kodak PixPro SP360.
-const original_image_width = 1024;
-const original_image_height = 1024;
+// Original fisheye image dimensions according to Kodak PixPro SP360.
+const fisheye_image_width = 1024;
+const fisheye_image_height = 1024;
 
 // Panorama Image dimensions.
 const equi_image_width = 2048;
@@ -40,8 +39,15 @@ var mouseDownPosLastY = 0;
 /*---------------*/
 
 var cam_heading = 90.0;
-var cam_pitch = 90.0;
+var cam_pitch = 45.0;
 var cam_fov = 90;
+
+/*---------------------*/
+/* Pre-Computed States */
+/*---------------------*/
+
+var fisheye_data_arr;
+var equi_data_arr;
 
 /*----------------------*/
 /* Image Initialization */
@@ -82,41 +88,25 @@ function getFisheyeImgData() {
 }
 
 function dewarp() {
-	if (fisheye_canvas != null) {
-		var equi_ctx = equi_canvas.getContext("2d");
-		equi_pixels = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height).data;
+    if (fisheye_canvas != null) {
+        var equi_ctx = equi_canvas.getContext("2d");
+        equi_pixels = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height).data;
 
-		var radius, theta, para_true_x, para_true_y, x, y;
-        var dest_offset, src_offset;
+        var src_offset, dest_offset;
 
         for (var i = 0; i < equi_image_height; i++) {
-            
-            radius = (equi_image_height - i);
-            
+
             for (var j = 0; j < equi_image_width; j++) {
-            
-                theta = 2 * Math.PI * -j / (4 * equi_image_height);
 
-                // find true (x, y) coordinates based on parametric
-                // equation of circle.
-                para_true_x = radius * Math.cos(theta);
-                para_true_y = radius * Math.sin(theta);
-
-                // scale true coordinates to integer-based coordinates
-                // (1 pixel is of size 1 * 1)
-                x = Math.round(para_true_x) + equi_image_height;
-                y = equi_image_height - Math.round(para_true_y);
-
-                dest_offset = 4 * ((equi_image_height - 1 - i) * equi_image_width + (equi_image_width - 1 - j));
-                src_offset = 4 * (x * original_image_width + y);
-
-				equi_pixels[dest_offset] = fisheye_pixels[src_offset];
-				equi_pixels[dest_offset + 1] = fisheye_pixels[src_offset + 1];
-				equi_pixels[dest_offset + 2] = fisheye_pixels[src_offset + 2];
+                src_offset = fisheye_data_arr[i][j];
+                dest_offset = equi_data_arr[i][j];
+                equi_pixels[dest_offset] = fisheye_pixels[src_offset];
+                equi_pixels[dest_offset + 1] = fisheye_pixels[src_offset + 1];
+                equi_pixels[dest_offset + 2] = fisheye_pixels[src_offset + 2];
                 equi_pixels[dest_offset + 3] = fisheye_pixels[src_offset + 3];
             }
         }
-	}
+    }
 }
 
 /*----------------*/
@@ -198,14 +188,25 @@ function render() {
     }
 }
 
-function init_pano() {
+/*----------------*/
+/* Initialization */
+/*----------------*/
+
+function init_env() {
+
+    // init fisheye buffer canvas
     fisheye_canvas = document.createElement('canvas');
     fisheye_canvas.width = original_img.width;
     fisheye_canvas.height = original_img.height;
 
+    // init equirectangular buffer canvas
     equi_canvas = document.createElement('canvas');
     equi_canvas.width = equi_image_width;
     equi_canvas.height = equi_image_height * 2;
+
+    // initializes arrays for pre-computation
+    // init1d();
+    init2d();
 
     //get canvas and set up call backs
     dome_canvas = document.getElementById('dome');
@@ -214,8 +215,96 @@ function init_pano() {
     window.onmousemove = mouseMove;
     window.onmouseup = mouseUp;
     window.onmousewheel = mouseScroll;
+}
 
-    // render();
+/**
+ * Initializes pre-compute states in a 1-dimensional array.
+ */
+function init1d() {
+    fisheye_data_arr = createArray(fisheye_image_height * fisheye_image_width);
+    equi_data_arr = createArray(equi_image_height * equi_image_width);
+    precompute1d();
+}
+
+/**
+ * Initializes pre-compute states in a 2-dimensional array.
+ */
+function init2d() {
+    fisheye_data_arr = createArray(fisheye_image_height, fisheye_image_width);
+    equi_data_arr = createArray(equi_image_height, equi_image_width);
+    precompute2d();
+}
+
+function precompute2d() {
+    var radius, theta, para_true_x, para_true_y, x, y;
+    var dest_offset, src_offset;
+
+    for (var i = 0; i < equi_image_height; i++) {
+
+        radius = (equi_image_height - i);
+
+        for (var j = 0; j < equi_image_width; j++) {
+
+            theta = 2 * Math.PI * -j / (4 * equi_image_height);
+
+            // find true (x, y) coordinates based on parametric
+            // equation of circle.
+            para_true_x = radius * Math.cos(theta);
+            para_true_y = radius * Math.sin(theta);
+
+            // scale true coordinates to integer-based coordinates
+            // (1 pixel is of size 1 * 1)
+            x = Math.round(para_true_x) + equi_image_height;
+            y = equi_image_height - Math.round(para_true_y);
+
+            dest_offset = 4 * ((equi_image_height - 1 - i) * equi_image_width + (equi_image_width - 1 - j));
+            src_offset = 4 * (x * fisheye_image_width + y);
+
+            equi_data_arr[i][j] = dest_offset;
+            fisheye_data_arr[i][j] = src_offset;
+        }
+    }
+}
+
+function precompute1d() {
+    var radius, theta, para_true_x, para_true_y, x, y;
+    var dest_offset, src_offset;
+
+    var max_array_size = equi_image_height * equi_image_width;
+
+    for (var i = 0; i < max_array_size; i++) {
+        radius = (equi_image_height - i) % equi_image_width;
+
+        theta = 2 * Math.PI * (-i % equi_image_width) / (4 * equi_image_height);
+
+        // find true (x, y) coordinates based on parametric
+        // equation of circle.
+        para_true_x = radius * Math.cos(theta);
+        para_true_y = radius * Math.sin(theta);
+
+        // scale true coordinates to integer-based coordinates
+        // (1 pixel is of size 1 * 1)
+        x = Math.round(para_true_x) + equi_image_height;
+        y = equi_image_height - Math.round(para_true_y);
+
+        dest_offset = 4 * ((equi_image_height - 1 - i) * equi_image_width + (equi_image_width - 1 - j));
+        src_offset = 4 * (x * fisheye_image_width + y);
+
+        equi_data_arr[i][j] = dest_offset;
+        fisheye_data_arr[i][j] = src_offset;
+    }
+}
+
+function createArray(length) {
+    var arr = new Array(length || 0),
+        i = length;
+
+    if (arguments.length > 1) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        while(i--) arr[length-1 - i] = createArray.apply(this, args);
+    }
+
+    return arr;
 }
 
 //--------------//
@@ -249,5 +338,3 @@ function mouseScroll(e) {
     cam_fov = Math.min(90, Math.max(30, cam_fov));
     render();
 }
-
-
