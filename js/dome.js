@@ -46,8 +46,11 @@ var cam_fov = 90;
 /* Pre-Computed States */
 /*---------------------*/
 
-var fisheye_data_arr;
-var equi_data_arr;
+var fisheye_data_2d_arr;
+var equi_data_2d_arr;
+
+var fisheye_data_1d_arr;
+var equi_data_1d_arr;
 
 /*----------------------*/
 /* Image Initialization */
@@ -64,17 +67,29 @@ var x = 0;
 setInterval(function() {
     original_img.src = img_src + '?t=' + x;
     x = (x + 1) % 50000;
-}, 100);
+}, 10);
 
 
 function onImgLoad() {
+
+    var perf_start, perf_end;
     getFisheyeImgData();
 
     // dewarp original image
-    dewarp();
+    perf_start = performance.now();
+    dewarp2d();
+    //dewarp1d();
+    perf_end = performance.now();
+
+    console.log("dewarp2d(): " + (perf_end - perf_start) + "ms");
+    //console.log("dewarp1d(): " + (perf_end - perf_start) + "ms");
 
     // draw equirectangular panorama onto pano canvas
+    //perf_start = performance.now();
     render();
+    //perf_end = performance.now();
+
+    //console.log("render(): " + (perf_end - perf_start) + "ms");
 }
 
 function getFisheyeImgData() {
@@ -87,7 +102,7 @@ function getFisheyeImgData() {
     }
 }
 
-function dewarp() {
+function dewarp2d() {
     if (fisheye_canvas != null) {
         var equi_ctx = equi_canvas.getContext("2d");
         equi_pixels = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height).data;
@@ -98,8 +113,31 @@ function dewarp() {
 
             for (var j = 0; j < equi_image_width; j++) {
 
-                src_offset = fisheye_data_arr[i][j];
-                dest_offset = equi_data_arr[i][j];
+                src_offset = fisheye_data_2d_arr[i][j];
+                dest_offset = equi_data_2d_arr[i][j];
+                equi_pixels[dest_offset] = fisheye_pixels[src_offset];
+                equi_pixels[dest_offset + 1] = fisheye_pixels[src_offset + 1];
+                equi_pixels[dest_offset + 2] = fisheye_pixels[src_offset + 2];
+                equi_pixels[dest_offset + 3] = fisheye_pixels[src_offset + 3];
+            }
+        }
+    }
+}
+
+function dewarp1d() {
+    if (fisheye_canvas != null) {
+        var equi_ctx = equi_canvas.getContext("2d");
+        equi_pixels = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height).data;
+
+        var src_offset, dest_offset;
+
+        for (var i = 0; i < equi_image_height; i++) {
+
+            for (var j = 0; j < equi_image_width; j++) {
+
+                src_offset = fisheye_data_1d_arr[equi_image_width * i + j];
+                dest_offset = equi_data_1d_arr[equi_image_width * i + j];
+
                 equi_pixels[dest_offset] = fisheye_pixels[src_offset];
                 equi_pixels[dest_offset + 1] = fisheye_pixels[src_offset + 1];
                 equi_pixels[dest_offset + 2] = fisheye_pixels[src_offset + 2];
@@ -194,24 +232,25 @@ function render() {
 
 function init_env() {
 
-    // init fisheye buffer canvas
+    // init fisheye buffer canvas of 1024 * 1024 pixels
     fisheye_canvas = document.createElement('canvas');
     fisheye_canvas.width = original_img.width;
     fisheye_canvas.height = original_img.height;
 
-    // init equirectangular buffer canvas
+    // init equirectangular buffer canvas of 2048 * 1024 pixels
     equi_canvas = document.createElement('canvas');
     equi_canvas.width = equi_image_width;
     equi_canvas.height = equi_image_height * 2;
 
     // initializes arrays for pre-computation
-    // init1d();
+    //init1d();
     init2d();
 
-    //get canvas and set up call backs
+    // get dome canvas
     dome_canvas = document.getElementById('dome');
     dome_canvas.onmousedown = mouseDown;
 
+    // set mouse controls
     window.onmousemove = mouseMove;
     window.onmouseup = mouseUp;
     window.onmousewheel = mouseScroll;
@@ -219,22 +258,40 @@ function init_env() {
 
 /**
  * Initializes pre-compute states in a 1-dimensional array.
+ * init2d() is called to fill in the 2d arrays, then flattens them into
+ * 1d arrays
  */
 function init1d() {
-    fisheye_data_arr = createArray(fisheye_image_height * fisheye_image_width);
-    equi_data_arr = createArray(equi_image_height * equi_image_width);
-    precompute1d();
+    init2d();
+
+    fisheye_data_1d_arr = createArray(fisheye_image_height * fisheye_image_width);
+    equi_data_1d_arr = createArray(equi_image_height * equi_image_width);
+
+    var perf_start = performance.now();
+    flatten_arr();
+    var perf_end = performance.now();
+
+    console.log("flatten(): " + (perf_end - perf_start) + " ms");
 }
 
 /**
  * Initializes pre-compute states in a 2-dimensional array.
  */
 function init2d() {
-    fisheye_data_arr = createArray(fisheye_image_height, fisheye_image_width);
-    equi_data_arr = createArray(equi_image_height, equi_image_width);
+    fisheye_data_2d_arr = createArray(fisheye_image_height, fisheye_image_width);
+    equi_data_2d_arr = createArray(equi_image_height, equi_image_width);
+
+    var perf_start = performance.now();
     precompute2d();
+    var perf_end = performance.now();
+
+    console.log("precompute2d(): " + (perf_end - perf_start) + " ms");
 }
 
+/**
+ * Fills the pre-compute state arrays with fixed values
+ * used for the dewarp algorithm.
+ */
 function precompute2d() {
     var radius, theta, para_true_x, para_true_y, x, y;
     var dest_offset, src_offset;
@@ -260,12 +317,29 @@ function precompute2d() {
             dest_offset = 4 * ((equi_image_height - 1 - i) * equi_image_width + (equi_image_width - 1 - j));
             src_offset = 4 * (x * fisheye_image_width + y);
 
-            equi_data_arr[i][j] = dest_offset;
-            fisheye_data_arr[i][j] = src_offset;
+            equi_data_2d_arr[i][j] = dest_offset;
+            fisheye_data_2d_arr[i][j] = src_offset;
         }
     }
 }
 
+
+/**
+ * Flattens both 2D array pre-compute states into their 1D array counterparts.
+ */
+function flatten_arr() {
+    if (equi_data_2d_arr != null && fisheye_data_2d_arr != null) {
+        
+        for (var i = 0; i <  equi_image_height; i++) {
+            for (var j = 0; j < equi_image_width; j++) {
+                equi_data_1d_arr[equi_image_width * i + j] = equi_data_2d_arr[i][j];
+                fisheye_data_1d_arr[equi_image_width * i + j] = fisheye_data_2d_arr[i][j];
+            }
+        }
+    }
+}
+
+/*
 function precompute1d() {
     var radius, theta, para_true_x, para_true_y, x, y;
     var dest_offset, src_offset;
@@ -273,7 +347,7 @@ function precompute1d() {
     var max_array_size = equi_image_height * equi_image_width;
 
     for (var i = 0; i < max_array_size; i++) {
-        radius = (equi_image_height - i) % equi_image_width;
+        radius = equi_image_height - (i % equi_image_width);
 
         theta = 2 * Math.PI * (-i % equi_image_width) / (4 * equi_image_height);
 
@@ -287,13 +361,14 @@ function precompute1d() {
         x = Math.round(para_true_x) + equi_image_height;
         y = equi_image_height - Math.round(para_true_y);
 
-        dest_offset = 4 * ((equi_image_height - 1 - i) * equi_image_width + (equi_image_width - 1 - j));
+        dest_offset = 4 * (equi_image_height - 1 - (i % equi_image_width)) * equi_image_width + (equi_image_width - 1 - (i % equi_image_height));
         src_offset = 4 * (x * fisheye_image_width + y);
 
-        equi_data_arr[i][j] = dest_offset;
-        fisheye_data_arr[i][j] = src_offset;
+        equi_data_1d_arr[i] = dest_offset;
+        fisheye_data_1d_arr[i] = src_offset;
     }
 }
+*/
 
 function createArray(length) {
     var arr = new Array(length || 0),
