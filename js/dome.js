@@ -49,8 +49,8 @@ var cam_fov = 90;
 var fisheye_data_2d_arr;
 var equi_data_2d_arr;
 
-var fisheye_data_1d_arr;
-var equi_data_1d_arr;
+var fisheye_data_1d_arr = new Array(fisheye_image_width * fisheye_image_height);
+var equi_data_1d_arr = new Array(equi_image_width * equi_image_height);
 
 /*----------------------*/
 /* Image Initialization */
@@ -76,12 +76,12 @@ function onImgLoad() {
     getFisheyeImgData();
 
     // dewarp original image
-    perf_start = performance.now();
-    dewarp2d();
-    //dewarp1d();
-    perf_end = performance.now();
+    //perf_start = performance.now();
+    //dewarp2d();
+    dewarp1d();
+    //perf_end = performance.now();
 
-    console.log("dewarp2d(): " + (perf_end - perf_start) + "ms");
+    //console.log("dewarp2d(): " + (perf_end - perf_start) + "ms");
     //console.log("dewarp1d(): " + (perf_end - perf_start) + "ms");
 
     // draw equirectangular panorama onto pano canvas
@@ -109,6 +109,7 @@ function dewarp2d() {
 
         var src_offset, dest_offset;
 
+        var perf_start = performance.now();
         for (var i = 0; i < equi_image_height; i++) {
 
             for (var j = 0; j < equi_image_width; j++) {
@@ -121,6 +122,9 @@ function dewarp2d() {
                 equi_pixels[dest_offset + 3] = fisheye_pixels[src_offset + 3];
             }
         }
+        var perf_end = performance.now();
+
+        console.log("nested for loops (2d arrays): " + (perf_end - perf_start) + "ms");
     }
 }
 
@@ -129,21 +133,28 @@ function dewarp1d() {
         var equi_ctx = equi_canvas.getContext("2d");
         equi_pixels = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height).data;
 
-        var src_offset, dest_offset;
 
+        var perf_start = performance.now();
         for (var i = 0; i < equi_image_height; i++) {
 
             for (var j = 0; j < equi_image_width; j++) {
 
-                src_offset = fisheye_data_1d_arr[equi_image_width * i + j];
-                dest_offset = equi_data_1d_arr[equi_image_width * i + j];
+                var x = equi_image_width * i + j;
 
-                equi_pixels[dest_offset] = fisheye_pixels[src_offset];
-                equi_pixels[dest_offset + 1] = fisheye_pixels[src_offset + 1];
-                equi_pixels[dest_offset + 2] = fisheye_pixels[src_offset + 2];
-                equi_pixels[dest_offset + 3] = fisheye_pixels[src_offset + 3];
+                //src_offset = 10;
+                //dest_offset = 10;
+                var src = fisheye_data_1d_arr[x];
+                var dest_offset = equi_data_1d_arr[x];
+
+                equi_pixels[dest_offset] = fisheye_pixels[src];
+                equi_pixels[dest_offset + 1] = fisheye_pixels[src + 1];
+                equi_pixels[dest_offset + 2] = fisheye_pixels[src + 2];
+                equi_pixels[dest_offset + 3] = fisheye_pixels[src + 3];
             }
         }
+        var perf_end = performance.now();
+
+        console.log("nested for loops (1d array): " + (perf_end - perf_start) + "ms");
     }
 }
 
@@ -243,8 +254,8 @@ function init_env() {
     equi_canvas.height = equi_image_height * 2;
 
     // initializes arrays for pre-computation
-    //init1d();
-    init2d();
+    init1d();
+    //init2d();
 
     // get dome canvas
     dome_canvas = document.getElementById('dome');
@@ -264,8 +275,8 @@ function init_env() {
 function init1d() {
     init2d();
 
-    fisheye_data_1d_arr = createArray(fisheye_image_height * fisheye_image_width);
-    equi_data_1d_arr = createArray(equi_image_height * equi_image_width);
+    //fisheye_data_1d_arr = createArray(fisheye_image_height * fisheye_image_width);
+    //equi_data_1d_arr = createArray(equi_image_height * equi_image_width);
 
     var perf_start = performance.now();
     flatten_arr();
@@ -317,6 +328,13 @@ function precompute2d() {
             dest_offset = 4 * ((equi_image_height - 1 - i) * equi_image_width + (equi_image_width - 1 - j));
             src_offset = 4 * (x * fisheye_image_width + y);
 
+            if (src_offset > 4194304) {
+                src_offset = 4194300;
+            }
+
+            // TODO Check bounds for values greater than array.
+            // 
+            // NOTE: Array size will increase if bounds exceeded.
             equi_data_2d_arr[i][j] = dest_offset;
             fisheye_data_2d_arr[i][j] = src_offset;
         }
@@ -332,43 +350,32 @@ function flatten_arr() {
         
         for (var i = 0; i <  equi_image_height; i++) {
             for (var j = 0; j < equi_image_width; j++) {
-                equi_data_1d_arr[equi_image_width * i + j] = equi_data_2d_arr[i][j];
-                fisheye_data_1d_arr[equi_image_width * i + j] = fisheye_data_2d_arr[i][j];
+                var x = equi_image_width * i + j;
+
+                equi_data_1d_arr[x] = equi_data_2d_arr[i][j];
+                fisheye_data_1d_arr[x] = fisheye_data_2d_arr[i][j];
+
+                /*
+                if (!isInteger(equi_data_1d_arr[x])) {
+                    console.log("isInteger(equi_data_1d_arr[x]) = false");
+                }
+
+                if (!isInteger(fisheye_data_1d_arr[x])) {
+                    console.log("isInteger(fisheye_data_1d_arr[x]) = false");
+                }
+                */
+
             }
         }
+
+        //console.log("fisheye_data_1d_arr: " + fisheye_data_1d_arr);
+        //console.log("equi_data_1d_arr: " + equi_data_1d_arr);
     }
 }
 
-/*
-function precompute1d() {
-    var radius, theta, para_true_x, para_true_y, x, y;
-    var dest_offset, src_offset;
-
-    var max_array_size = equi_image_height * equi_image_width;
-
-    for (var i = 0; i < max_array_size; i++) {
-        radius = equi_image_height - (i % equi_image_width);
-
-        theta = 2 * Math.PI * (-i % equi_image_width) / (4 * equi_image_height);
-
-        // find true (x, y) coordinates based on parametric
-        // equation of circle.
-        para_true_x = radius * Math.cos(theta);
-        para_true_y = radius * Math.sin(theta);
-
-        // scale true coordinates to integer-based coordinates
-        // (1 pixel is of size 1 * 1)
-        x = Math.round(para_true_x) + equi_image_height;
-        y = equi_image_height - Math.round(para_true_y);
-
-        dest_offset = 4 * (equi_image_height - 1 - (i % equi_image_width)) * equi_image_width + (equi_image_width - 1 - (i % equi_image_height));
-        src_offset = 4 * (x * fisheye_image_width + y);
-
-        equi_data_1d_arr[i] = dest_offset;
-        fisheye_data_1d_arr[i] = src_offset;
-    }
+function isInteger(x) {
+    return x % 1 === 0;
 }
-*/
 
 function createArray(length) {
     var arr = new Array(length || 0),
