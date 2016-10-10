@@ -15,6 +15,9 @@ const equi_image_height = 512;
 // conversion constant from degrees to radians
 const DEG2RAD = Math.PI / 180.0;
 
+// maximum 1D array size for pixel data of length 1024 * 1024 * 4 
+const MAX_1D_ARRAY_SIZE = 4194304;
+
 /*----------------------*/
 /* Buffers and Canvases */
 /*----------------------*/
@@ -38,19 +41,19 @@ var mouseDownPosLastY = 0;
 /* Camera States */
 /*---------------*/
 
-var cam_heading = 90.0;
+var cam_heading = 45.0;
 var cam_pitch = 45.0;
-var cam_fov = 90;
+var cam_fov = 45;
 
 /*---------------------*/
 /* Pre-Computed States */
 /*---------------------*/
 
-var fisheye_data_2d_arr;
-var equi_data_2d_arr;
+var fisheye_data_2d_arr = createArray(fisheye_image_width, fisheye_image_height);
+//var equi_data_2d_arr;
 
 var fisheye_data_1d_arr = new Array(fisheye_image_width * fisheye_image_height);
-var equi_data_1d_arr = new Array(equi_image_width * equi_image_height);
+//var equi_data_1d_arr = new Array(equi_image_width * equi_image_height);
 
 /*----------------------*/
 /* Image Initialization */
@@ -67,29 +70,18 @@ var x = 0;
 setInterval(function() {
     original_img.src = img_src + '?t=' + x;
     x = (x + 1) % 50000;
-}, 10);
+}, 100);
 
 
 function onImgLoad() {
-
-    var perf_start, perf_end;
     getFisheyeImgData();
 
     // dewarp original image
-    //perf_start = performance.now();
     //dewarp2d();
     dewarp1d();
-    //perf_end = performance.now();
-
-    //console.log("dewarp2d(): " + (perf_end - perf_start) + "ms");
-    //console.log("dewarp1d(): " + (perf_end - perf_start) + "ms");
 
     // draw equirectangular panorama onto pano canvas
-    //perf_start = performance.now();
     render();
-    //perf_end = performance.now();
-
-    //console.log("render(): " + (perf_end - perf_start) + "ms");
 }
 
 function getFisheyeImgData() {
@@ -115,7 +107,7 @@ function dewarp2d() {
             for (var j = 0; j < equi_image_width; j++) {
 
                 src_offset = fisheye_data_2d_arr[i][j];
-                dest_offset = equi_data_2d_arr[i][j];
+                dest_offset = 4 * ((equi_image_height - 1 - i) * equi_image_width + (equi_image_width - 1 - j));
                 equi_pixels[dest_offset] = fisheye_pixels[src_offset];
                 equi_pixels[dest_offset + 1] = fisheye_pixels[src_offset + 1];
                 equi_pixels[dest_offset + 2] = fisheye_pixels[src_offset + 2];
@@ -124,7 +116,7 @@ function dewarp2d() {
         }
         var perf_end = performance.now();
 
-        console.log("nested for loops (2d arrays): " + (perf_end - perf_start) + "ms");
+        //console.log("nested for loops (2d arrays): " + (perf_end - perf_start) + "ms");
     }
 }
 
@@ -141,10 +133,8 @@ function dewarp1d() {
 
                 var x = equi_image_width * i + j;
 
-                //src_offset = 10;
-                //dest_offset = 10;
                 var src = fisheye_data_1d_arr[x];
-                var dest_offset = equi_data_1d_arr[x];
+                var dest_offset = 4 * ((equi_image_height - 1 - i) * equi_image_width + (equi_image_width - 1 - j));;
 
                 equi_pixels[dest_offset] = fisheye_pixels[src];
                 equi_pixels[dest_offset + 1] = fisheye_pixels[src + 1];
@@ -154,7 +144,7 @@ function dewarp1d() {
         }
         var perf_end = performance.now();
 
-        console.log("nested for loops (1d array): " + (perf_end - perf_start) + "ms");
+        //console.log("nested for loops (1d array): " + (perf_end - perf_start) + "ms");
     }
 }
 
@@ -193,6 +183,7 @@ function renderPanorama(canvas) {
 
         //render image
         var i, j;
+        var perf_start = performance.now();
         for (i = 0; i < dest_height; i++) {
             for (j = 0; j < dest_width; j++) {
                 var fx = j / dest_width;
@@ -218,6 +209,8 @@ function renderPanorama(canvas) {
 
             }
         }
+        var perf_end = performance.now();
+        console.log("renderPanorama(): " + (perf_end - perf_start) + " ms");
 
         //upload image data
         ctx.putImageData(imgdata, 0, 0);
@@ -275,9 +268,6 @@ function init_env() {
 function init1d() {
     init2d();
 
-    //fisheye_data_1d_arr = createArray(fisheye_image_height * fisheye_image_width);
-    //equi_data_1d_arr = createArray(equi_image_height * equi_image_width);
-
     var perf_start = performance.now();
     flatten_arr();
     var perf_end = performance.now();
@@ -289,8 +279,8 @@ function init1d() {
  * Initializes pre-compute states in a 2-dimensional array.
  */
 function init2d() {
-    fisheye_data_2d_arr = createArray(fisheye_image_height, fisheye_image_width);
-    equi_data_2d_arr = createArray(equi_image_height, equi_image_width);
+    //fisheye_data_2d_arr = createArray(fisheye_image_height, fisheye_image_width);
+    //equi_data_2d_arr = createArray(equi_image_height, equi_image_width);
 
     var perf_start = performance.now();
     precompute2d();
@@ -325,56 +315,40 @@ function precompute2d() {
             x = Math.round(para_true_x) + equi_image_height;
             y = equi_image_height - Math.round(para_true_y);
 
-            dest_offset = 4 * ((equi_image_height - 1 - i) * equi_image_width + (equi_image_width - 1 - j));
+            //dest_offset = 4 * ((equi_image_height - 1 - i) * equi_image_width + (equi_image_width - 1 - j));
             src_offset = 4 * (x * fisheye_image_width + y);
 
-            if (src_offset > 4194304) {
+            // Checks if the offset is greater than MAX_1D_ARRAY_VALUE.
+            // This prevents the array from dynamically increasing in size to accomodate the value,
+            // resulting in an increase in array lookup time.
+            if (src_offset > MAX_1D_ARRAY_SIZE) {
                 src_offset = 4194300;
             }
 
-            // TODO Check bounds for values greater than array.
-            // 
-            // NOTE: Array size will increase if bounds exceeded.
-            equi_data_2d_arr[i][j] = dest_offset;
+            //equi_data_2d_arr[i][j] = dest_offset;
             fisheye_data_2d_arr[i][j] = src_offset;
         }
     }
 }
 
-
 /**
  * Flattens both 2D array pre-compute states into their 1D array counterparts.
  */
 function flatten_arr() {
-    if (equi_data_2d_arr != null && fisheye_data_2d_arr != null) {
+    if (/*equi_data_2d_arr != null &&*/ fisheye_data_2d_arr != null) {
         
         for (var i = 0; i <  equi_image_height; i++) {
             for (var j = 0; j < equi_image_width; j++) {
                 var x = equi_image_width * i + j;
 
-                equi_data_1d_arr[x] = equi_data_2d_arr[i][j];
+                //equi_data_1d_arr[x] = equi_data_2d_arr[i][j];
                 fisheye_data_1d_arr[x] = fisheye_data_2d_arr[i][j];
-
-                /*
-                if (!isInteger(equi_data_1d_arr[x])) {
-                    console.log("isInteger(equi_data_1d_arr[x]) = false");
-                }
-
-                if (!isInteger(fisheye_data_1d_arr[x])) {
-                    console.log("isInteger(fisheye_data_1d_arr[x]) = false");
-                }
-                */
-
             }
         }
 
         //console.log("fisheye_data_1d_arr: " + fisheye_data_1d_arr);
         //console.log("equi_data_1d_arr: " + equi_data_1d_arr);
     }
-}
-
-function isInteger(x) {
-    return x % 1 === 0;
 }
 
 function createArray(length) {
