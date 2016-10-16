@@ -1,22 +1,21 @@
-<html>
-  <head>
-    <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-    <meta http-equiv="cache-control" CONTENT="no-cache">
-    <script type="text/javascript" src="js/dome.js"></script>
-    <!--<script type="text/javascript" src="js/dome_original.js"></script>-->
-  </head>
-  <body onload="init_env()">
-    <div align="center"> <br>
-      <br>
-      <h1>HTML5 panorama viewer Javascript</h1>
-    </div>
-    <div align="center"> <br>
-      <p>Pano</p>
-      <canvas id="dome" width="640" height="480">
-        <p>Your browser does not support the HTML5 canvas element.</p>
-      </canvas>
+<!DOCTYPE html>
+<html lang="en">
 
-    </div>
-   
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="css/dome.css">
+  <title>USB Camera Demo</title>
+</head>
+
+<body>
+  <!-- For devices that support getUserMedia and have a webcam we can display the feed in a video element -->
+  <div id="container">
+    <video autoplay id="videoElement">
+    </video>
+  </div>
+
+  <script type="text/javascript" src="js/videofeed.js"></script>
+  <!--<script type="text/javascript" src="js/dome.js"></script>-->
+</body>
+
 </html>

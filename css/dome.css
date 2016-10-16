@@ -6,6 +6,7 @@
 }
 
 #videoElement {
+    vertical-align: middle;
     width: 1024px;
     height: 1024px;
     background-color: #666;
