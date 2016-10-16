@@ -9,13 +9,19 @@
 
 <body>
   <!-- For devices that support getUserMedia and have a webcam we can display the feed in a video element -->
-  <div id="container">
-    <video autoplay id="videoElement">
-    </video>
+  <div id="videoContainer">
+    <video autoplay id="videoElement"></video>
   </div>
 
+  <br>
+
+  <!-- Displays the resultant dome -->
+  <div id="domeContainer">
+  	<canvas id="dome"></canvas>
+  </div>
+	
   <script type="text/javascript" src="js/videofeed.js"></script>
-  <!--<script type="text/javascript" src="js/dome.js"></script>-->
+  <script type="text/javascript" src="js/dome.js"></script>
 </body>
 
 </html>
