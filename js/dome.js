@@ -80,7 +80,7 @@ function getFisheyeImgData() {
     if (fisheye_canvas != null && video_feed != null) {
         var fisheye_ctx = fisheye_canvas.getContext("2d");
 
-        fisheye_ctx.drawImage(video_feed, 0, 0);
+        fisheye_ctx.drawImage(video_feed, 128, 0, fisheye_image_width, fisheye_image_height);
 
         fisheye_pixels = fisheye_ctx.getImageData(0, 0, fisheye_canvas.width, fisheye_canvas.height).data;
     }
@@ -117,9 +117,6 @@ function dewarp1d() {
         var equi_ctx = equi_canvas.getContext("2d");
         equi_pixels = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height).data;
 
-        if (equi_pixels == null) {
-            console.log("equi_pixels is null!");
-        }
         var perf_start = performance.now();
         for (var i = 0; i < equi_image_height; i++) {
 
@@ -138,7 +135,7 @@ function dewarp1d() {
         }
         var perf_end = performance.now();
 
-        console.log("nested for loops (1d array): " + (perf_end - perf_start) + "ms");
+        //console.log("nested for loops (1d array): " + (perf_end - perf_start) + "ms");
     }
 }
 
@@ -232,17 +229,18 @@ function render() {
 function init_env() {
     //console.log("FUNCTION CALL: init_env()");
 
-    // init fisheye buffer canvas of 1024 * 1024 pixels
+    // init fisheye buffer canvas of dimensions equal to video feed.
     fisheye_canvas = document.createElement('canvas');
     fisheye_canvas.width = fisheye_image_width;
     fisheye_canvas.height = fisheye_image_height;
+
+    console.log("Video width: " + video_feed.videoWidth);
+    console.log("Video height: " + video_feed.videoHeight);
 
     // init equirectangular buffer canvas of 2048 * 1024 pixels
     equi_canvas = document.createElement('canvas');
     equi_canvas.width = equi_image_width;
     equi_canvas.height = equi_image_height * 2;
-
-    video_feed = document.getElementById("videoElement");
 
     // initializes arrays for pre-computation
     init1d();
@@ -329,7 +327,7 @@ function precompute2d() {
  * Flattens both 2D array pre-compute states into their 1D array counterparts.
  */
 function flatten_arr() {
-    if (/*equi_data_2d_arr != null &&*/ fisheye_data_2d_arr != null) {
+    if (fisheye_data_2d_arr != null) {
         
         for (var i = 0; i <  equi_image_height; i++) {
             for (var j = 0; j < equi_image_width; j++) {
@@ -389,6 +387,12 @@ function mouseScroll(e) {
 // Main Script //
 //-------------//
 
-init_env();
+// grab video feed
+video_feed = document.getElementById("videoElement");
+
+// only obtain video feed dimensions after feed has fully loaded.
+video_feed.addEventListener( "loadedmetadata", function (e) {
+    init_env();
+}, false );
 
 window.setInterval("redisplay()", 100);

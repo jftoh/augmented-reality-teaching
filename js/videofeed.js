@@ -23,5 +23,5 @@ function handleVideo(stream) {
 }
 
 function videoError(e) {
-    // no webcam found - do something
+    console.log("Error: Video element not found");
 }
