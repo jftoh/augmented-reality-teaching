@@ -1,27 +1,62 @@
 #videoContainer {
-    float: left;
+    float: top;
     margin: 0px auto;
-    width: 1280px;
-    height: 1024px;
+    width: 2592px;
+    height: 1944px;
     border: 10px #333 solid;
 }
 
 #domeContainer {
-    float: right;
+    float: bottom;
     margin: 0px auto;
-    width: 1024px;
-    height: 1024px;
+    width: 512px;
+    height: 512px;
     border: 10px #333 solid;
 }
 
+#fisheyeContainer {
+    float: top;
+    margin: 0px auto;
+    width: 1944px;
+    height: 1944px;
+    border: 10px #333 solid;
+}
+
+#equiContainer {
+    float: top;
+    margin: 0px auto;
+    width: 3888px;
+    height: 1944px;
+    border: 10px #333 solid;
+}
+
+#fisheye {
+    width: 1944px;
+    height: 1944px;
+    background-color: #666;
+}
+
+#equi {
+    width: 3888px;
+    height: 972px;
+    background-color: #CCC;
+}
+
 #videoElement {
-    width: 1280px;
-    height: 1024px;
+    width: 2592px;
+    height: 1944px;
     background-color: #666;
 }
 
 #dome {
-    width: 1024px;
-    height: 1024px;
+    width: 512px;
+    height: 512px;
     background-color: #CCC;
 }
+
+h1 {
+    font-family: "Arial";
+    font-size: 40px;
+    text-align: center;
+}
+

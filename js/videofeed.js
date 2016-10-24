@@ -6,8 +6,8 @@ navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia 
 var hdConstraints = {
     video: {
         mandatory: {
-            minWidth: 1024,
-            minHeight: 1024
+            minWidth: 2592,
+            minHeight: 1944
         }
     }
 };

@@ -8,10 +8,23 @@
 </head>
 
 <body>
+
+  <h1>USB Camera Demo</h1>
+
   <!-- For devices that support getUserMedia and have a webcam we can display the feed in a video element -->
-  <div id="videoContainer">
+  <div id="videoContainer" hidden="true">
   	<!-- Video feed has a native display of -->
     <video autoplay id="videoElement"></video>
+  </div>
+
+  <!-- Displays the original fisheye image -->
+  <div id="fisheyeContainer" hidden="true">
+    <canvas id="fisheye"></canvas>
+  </div>
+
+  <!-- Displays the dewarped image -->
+  <div id="equiContainer" hidden="true">
+    <canvas id="equi"></canvas>
   </div>
 
   <!-- Displays the resultant dome -->

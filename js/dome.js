@@ -4,19 +4,24 @@
 /* Constants */
 /*-----------*/
 
-// Original fisheye image dimensions according to Kodak PixPro SP360.
-const fisheye_image_width = 1024;
-const fisheye_image_height = 1024;
+// Original fisheye image dimensions according to USB webcam.
+const fisheye_image_width = 1944;
+const fisheye_image_height = 1944;
+
+const fisheye_canvas_width = 1944;
+const fisheye_canvas_height = 1944;
+
+const fisheye_image_x_origin = (2592 - 1944) / 2;
 
 // Panorama Image dimensions.
-const equi_image_width = 2048;
-const equi_image_height = 512;
+const equi_image_width = fisheye_image_width * 2;
+const equi_image_height = fisheye_image_width / 2;
 
 // conversion constant from degrees to radians
 const DEG2RAD = Math.PI / 180.0;
 
-// maximum 1D array size for pixel data of length 1024 * 1024 * 4 
-const MAX_1D_ARRAY_SIZE = 4194304;
+// maximum 1D array size for pixel data of length 1944 * 1944 * 4 
+const MAX_1D_ARRAY_SIZE = fisheye_image_width * fisheye_image_height * 4;
 
 /*----------------------*/
 /* Buffers and Canvases */
@@ -80,9 +85,11 @@ function getFisheyeImgData() {
     if (fisheye_canvas != null && video_feed != null) {
         var fisheye_ctx = fisheye_canvas.getContext("2d");
 
-        fisheye_ctx.drawImage(video_feed, 128, 0, fisheye_image_width, fisheye_image_height);
+        // Original video feed dimensions are at 2592 X 1944 pixels.
+        // We only require the fisheye image of dimensions 1944 X 1944 pixels.
+        fisheye_ctx.drawImage(video_feed, fisheye_image_x_origin, 0, fisheye_image_width, fisheye_image_height, 0, 0, fisheye_image_width, fisheye_image_height);
 
-        fisheye_pixels = fisheye_ctx.getImageData(0, 0, fisheye_canvas.width, fisheye_canvas.height).data;
+        fisheye_pixels = fisheye_ctx.getImageData(0, 0, fisheye_image_width, fisheye_image_height).data;
     }
 }
 
@@ -115,7 +122,8 @@ function dewarp2d() {
 function dewarp1d() {
     if (fisheye_canvas != null) {
         var equi_ctx = equi_canvas.getContext("2d");
-        equi_pixels = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height).data;
+        var imgdata = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height);
+        equi_pixels = imgdata.data;
 
         var perf_start = performance.now();
         for (var i = 0; i < equi_image_height; i++) {
@@ -135,7 +143,9 @@ function dewarp1d() {
         }
         var perf_end = performance.now();
 
-        //console.log("nested for loops (1d array): " + (perf_end - perf_start) + "ms");
+        // equi_ctx.putImageData(imgdata, 0, 0);
+
+        console.log("nested for loops (1d array): " + (perf_end - perf_start) + "ms");
     }
 }
 
@@ -230,15 +240,15 @@ function init_env() {
     //console.log("FUNCTION CALL: init_env()");
 
     // init fisheye buffer canvas of dimensions equal to video feed.
-    fisheye_canvas = document.createElement('canvas');
-    fisheye_canvas.width = fisheye_image_width;
-    fisheye_canvas.height = fisheye_image_height;
+    fisheye_canvas = document.getElementById('fisheye');
+    fisheye_canvas.width = fisheye_canvas_width;
+    fisheye_canvas.height = fisheye_canvas_height;
 
     console.log("Video width: " + video_feed.videoWidth);
     console.log("Video height: " + video_feed.videoHeight);
 
-    // init equirectangular buffer canvas of 2048 * 1024 pixels
-    equi_canvas = document.createElement('canvas');
+    // init equirectangular buffer canvas of 3888 * 1944 pixels
+    equi_canvas = document.getElementById('equi');
     equi_canvas.width = equi_image_width;
     equi_canvas.height = equi_image_height * 2;
 
@@ -315,7 +325,7 @@ function precompute2d() {
             // This prevents the array from dynamically increasing in size to accomodate the value,
             // resulting in an increase in array lookup time.
             if (src_offset > MAX_1D_ARRAY_SIZE) {
-                src_offset = 4194300;
+                src_offset = MAX_1D_ARRAY_SIZE - 8;
             }
 
             fisheye_data_2d_arr[i][j] = src_offset;
