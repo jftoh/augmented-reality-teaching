@@ -60,8 +60,6 @@ var cam_fov = 45;
 /* Pre-Computed States */
 /*---------------------*/
 
-var fisheye_data_2d_arr = createArray(fisheye_image_width, fisheye_image_height);
-
 var fisheye_data_1d_arr = new Array(fisheye_image_width * fisheye_image_height);
 
 /*----------------------*/
@@ -74,7 +72,6 @@ function redisplay() {
     getFisheyeImgData();
 
     // dewarp original image
-    //dewarp2d();
     dewarp1d();
 
     // draw equirectangular panorama onto pano canvas
@@ -99,32 +96,6 @@ function getFisheyeImgData() {
         var end = performance.now();
 
         //console.log("getImageData(): " + (end - start) + "ms");
-    }
-}
-
-function dewarp2d() {
-    if (fisheye_canvas != null) {
-        var equi_ctx = equi_canvas.getContext("2d");
-        equi_pixels = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height).data;
-
-        var src_offset, dest_offset;
-
-        var perf_start = performance.now();
-        for (var i = 0; i < equi_image_height; i++) {
-
-            for (var j = 0; j < equi_image_width; j++) {
-
-                src_offset = fisheye_data_2d_arr[i][j];
-                dest_offset = 4 * ((equi_image_height - 1 - i) * equi_image_width + (equi_image_width - 1 - j));
-                equi_pixels[dest_offset] = fisheye_pixels[src_offset];
-                equi_pixels[dest_offset + 1] = fisheye_pixels[src_offset + 1];
-                equi_pixels[dest_offset + 2] = fisheye_pixels[src_offset + 2];
-                equi_pixels[dest_offset + 3] = fisheye_pixels[src_offset + 3];
-            }
-        }
-        var perf_end = performance.now();
-
-        //console.log("nested for loops (2d arrays): " + (perf_end - perf_start) + "ms");
     }
 }
 
@@ -154,7 +125,7 @@ function dewarp1d() {
 
         // equi_ctx.putImageData(imgdata, 0, 0);
 
-        //console.log("nested for loops (1d array): " + (perf_end - perf_start) + "ms");
+        console.log("nested for loops (1d array): " + (perf_end - perf_start) + "ms");
     }
 }
 
@@ -253,8 +224,8 @@ function init_env() {
     fisheye_canvas.width = fisheye_canvas_width;
     fisheye_canvas.height = fisheye_canvas_height;
 
-    console.log("Video width: " + video_feed.videoWidth);
-    console.log("Video height: " + video_feed.videoHeight);
+    // console.log("Video width: " + video_feed.videoWidth);
+    // console.log("Video height: " + video_feed.videoHeight);
 
     // init equirectangular buffer canvas of 3888 * 1944 pixels
     equi_canvas = document.getElementById('equi');
@@ -263,7 +234,6 @@ function init_env() {
 
     // initializes arrays for pre-computation
     init1d();
-    //init2d();
 
     // get dome canvas
     dome_canvas = document.getElementById('dome');
@@ -285,31 +255,19 @@ function init_env() {
  */
 function init1d() {
     //console.log("FUNCTION CALL: init_1d");
-    init2d();
-
+   
     var perf_start = performance.now();
-    flatten_arr();
+    precompute1d();
     var perf_end = performance.now();
 
-    console.log("flatten(): " + (perf_end - perf_start) + " ms");
-}
-
-/**
- * Initializes pre-compute states in a 2-dimensional array.
- */
-function init2d() {
-    var perf_start = performance.now();
-    precompute2d();
-    var perf_end = performance.now();
-
-    console.log("precompute2d(): " + (perf_end - perf_start) + " ms");
+    console.log("precompute1d(): " + (perf_end - perf_start) + " ms");
 }
 
 /**
  * Fills the pre-compute state arrays with fixed values
  * used for the dewarp algorithm.
  */
-function precompute2d() {
+function precompute1d() {
     var radius, theta, para_true_x, para_true_y, x, y;
     var dest_offset, src_offset;
 
@@ -340,39 +298,9 @@ function precompute2d() {
                 src_offset = MAX_1D_ARRAY_SIZE - 8;
             }
 
-            fisheye_data_2d_arr[i][j] = src_offset;
+            fisheye_data_1d_arr[i * equi_image_width + j] = src_offset;
         }
     }
-
-    // console.log(fisheye_data_2d_arr);
-}
-
-/**
- * Flattens both 2D array pre-compute states into their 1D array counterparts.
- */
-function flatten_arr() {
-    if (fisheye_data_2d_arr != null) {
-        
-        for (var i = 0; i <  equi_image_height; i++) {
-            for (var j = 0; j < equi_image_width; j++) {
-                var x = equi_image_width * i + j;
-
-                fisheye_data_1d_arr[x] = fisheye_data_2d_arr[i][j];
-            }
-        }
-    }
-}
-
-function createArray(length) {
-    var arr = new Array(length || 0),
-        i = length;
-
-    if (arguments.length > 1) {
-        var args = Array.prototype.slice.call(arguments, 1);
-        while(i--) arr[length-1 - i] = createArray.apply(this, args);
-    }
-
-    return arr;
 }
 
 //--------------//
@@ -419,4 +347,4 @@ video_feed.addEventListener( "loadedmetadata", function (e) {
     init_env();
 }, false );
 
-window.setInterval("redisplay()", 100);
+window.setInterval("redisplay()", 50);
