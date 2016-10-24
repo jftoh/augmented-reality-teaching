@@ -9,8 +9,8 @@
 #domeContainer {
     float: bottom;
     margin: 0px auto;
-    width: 512px;
-    height: 512px;
+    width: 1024px;
+    height: 1024px;
     border: 10px #333 solid;
 }
 
@@ -49,8 +49,8 @@
 }
 
 #dome {
-    width: 512px;
-    height: 512px;
+    width: 1024px;
+    height: 1024px;
     background-color: #CCC;
 }
 

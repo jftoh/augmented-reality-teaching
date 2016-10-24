@@ -86,10 +86,19 @@ function getFisheyeImgData() {
         var fisheye_ctx = fisheye_canvas.getContext("2d");
 
         // Original video feed dimensions are at 2592 X 1944 pixels.
-        // We only require the fisheye image of dimensions 1944 X 1944 pixels.
+        // We only require the fisheye image of dimensions 1944 X 1944 pixels
+         
+        //var start = performance.now();
         fisheye_ctx.drawImage(video_feed, fisheye_image_x_origin, 0, fisheye_image_width, fisheye_image_height, 0, 0, fisheye_image_width, fisheye_image_height);
+        //var end = performance.now();
 
+        //console.log("drawImage(): " + (end - start) + "ms");
+
+        var start = performance.now();
         fisheye_pixels = fisheye_ctx.getImageData(0, 0, fisheye_image_width, fisheye_image_height).data;
+        var end = performance.now();
+
+        //console.log("getImageData(): " + (end - start) + "ms");
     }
 }
 
@@ -145,7 +154,7 @@ function dewarp1d() {
 
         // equi_ctx.putImageData(imgdata, 0, 0);
 
-        console.log("nested for loops (1d array): " + (perf_end - perf_start) + "ms");
+        //console.log("nested for loops (1d array): " + (perf_end - perf_start) + "ms");
     }
 }
 
@@ -260,6 +269,9 @@ function init_env() {
     dome_canvas = document.getElementById('dome');
     dome_canvas.onmousedown = mouseDown;
 
+    // console.log(dome_canvas.width);
+    // console.log(dome_canvas.height);
+
     // set mouse controls
     window.onmousemove = mouseMove;
     window.onmouseup = mouseUp;
@@ -331,6 +343,8 @@ function precompute2d() {
             fisheye_data_2d_arr[i][j] = src_offset;
         }
     }
+
+    // console.log(fisheye_data_2d_arr);
 }
 
 /**
