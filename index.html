@@ -3,38 +3,55 @@
 
 <head>
   <meta charset="UTF-8">
-  <link rel="stylesheet" type="text/css" href="css/dome.css">
+  <!-- Compiled and minified CSS -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css">
+  <!-- Compiled and minified JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/js/materialize.min.js"></script>
   <title>USB Camera Demo</title>
 </head>
 
 <body>
+  <nav class="light-blue lighten-1" role="navigation"></nav>
 
-  <h1>USB Camera Demo</h1>
-
-  <!-- For devices that support getUserMedia and have a webcam we can display the feed in a video element -->
-  <div id="videoContainer" hidden="true">
-  	<!-- Video feed has a native display of -->
-    <video autoplay id="videoElement"></video>
+  <div class="section no-pad-bot" id="index-banner">
+    <div class="container">
+      <br>
+      <br>
+      <h1 class="header center orange-text">USB Camera Demo</h1>
+      <div class="row center">
+        <h5 class="header col s12 light">Click on one of the icons below.</h5>
+      </div>
+      <br>
+      <br>
+    </div>
   </div>
 
+  <div class="container">
+    <div class="section">
+      <!--   Icon Section   -->
+      <div class="row">
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons" style="font-size: 100px"><a href="videocam.html">videocam</a></i></h2>
+            <h5 class="center">Original Fisheye Video Feed</h5>
+          </div>
+        </div>
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons" style="font-size: 100px"><a href="pano.html">stay_primary_landscape</a></i></h2>
+            <h5 class="center">Panorama Video Feed</h5>
+          </div>
+        </div>
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons" style="font-size: 100px"><a href="dome.html">settings</a></i></h2>
+            <h5 class="center">Dome Video Feed</h5>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <!-- Displays the original fisheye image -->
-  <div id="fisheyeContainer" hidden="true">
-    <canvas id="fisheye"></canvas>
-  </div>
-
-  <!-- Displays the dewarped image -->
-  <div id="equiContainer" hidden="true">
-    <canvas id="equi"></canvas>
-  </div>
-
-  <!-- Displays the resultant dome -->
-  <div id="domeContainer">
-  	<canvas id="dome" width="512" height="512"></canvas>
-  </div>
-	
-  <script type="text/javascript" src="js/videofeed.js"></script>
-  <script type="text/javascript" src="js/dome.js"></script>
 </body>
 
 </html>
