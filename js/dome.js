@@ -310,6 +310,7 @@ function precompute1d() {
             // This prevents the array from dynamically increasing in size to accomodate the value,
             // resulting in an increase in array lookup time.
             if (src_offset > MAX_1D_ARRAY_SIZE) {
+                // console.log("size exceeded");
                 src_offset = MAX_1D_ARRAY_SIZE - 8;
             }
 

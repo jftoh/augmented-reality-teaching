@@ -53,19 +53,8 @@ var fisheye_data_1d_arr = new Array(fisheye_image_width * fisheye_image_height);
 /* Capturing Video Feed */
 /*----------------------*/
 
-function redisplay() {
-    //console.log("FUNCTION CALL: redisplay()");
-
-    getFisheyeImgData();
-
-    // dewarp original image
-    dewarp1d();
-}
-
 function getFisheyeImgData() {
     if (fisheye_canvas != null && video_feed != null) {
-        // var fisheye_ctx = fisheye_canvas.getContext("2d");
-
         // Original video feed dimensions are at 2592 X 1944 pixels.
         // We only require the fisheye image of dimensions 1944 X 1944 pixels
          
@@ -76,20 +65,25 @@ function getFisheyeImgData() {
         // console.log("drawImage(): " + (end - start) + "ms");
 
         // var start = performance.now();
-        fisheye_pixels = fisheye_ctx.getImageData(0, 0, fisheye_image_width, fisheye_image_height).data;
+        
         // var end = performance.now();
 
         // console.log("getImageData(): " + (end - start) + "ms");
+        
+        window.setTimeout(getFisheyeImgData, 50); 
+        
     }
 }
 
 function dewarp1d() {
+    var perf_start = performance.now();
     if (fisheye_canvas != null) {
+
+        // Step 1: Get Fisheye image
+        fisheye_pixels = fisheye_ctx.getImageData(0, 0, fisheye_image_width, fisheye_image_height).data;
         var imgdata = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height);
         equi_pixels = imgdata.data;
 
-        var perf_start = performance.now();
-        
         var x, src, dest_offset;
 
         for (var i = 0; i < equi_image_height; i++) {
@@ -107,12 +101,18 @@ function dewarp1d() {
                 equi_pixels[dest_offset + 3] = fisheye_pixels[src + 3];
             }
         }
-        var perf_end = performance.now();
-
+    
+        //var perf_start_putimgdata = performance.now();
         equi_ctx.putImageData(imgdata, 0, 0);
+        //var perf_end_putimgdata = performance.now();
 
-        // console.log("nested for loops (1d array): " + (perf_end - perf_start) + "ms");
+        //console.log("putImageData(): " + (perf_end_putimgdata - perf_start_putimgdata) + "ms");
     }
+    var perf_end = performance.now();
+
+    //console.log("dewarp1d(): " + (perf_end - perf_start) + "ms");
+
+    window.setTimeout(dewarp1d); 
 }
 
 /*----------------*/
@@ -131,9 +131,6 @@ function init_env() {
     fisheye_ctx = fisheye_canvas.getContext('2d');
     // var end = performance.now();
 
-    // console.log("Video width: " + video_feed.videoWidth);
-    // console.log("Video height: " + video_feed.videoHeight);
-
     // init equirectangular buffer canvas of 3888 * 1944 pixels
     equi_canvas = document.getElementById('equi');
     equi_canvas.width = equi_image_width;
@@ -143,6 +140,9 @@ function init_env() {
 
     // initializes arrays for pre-computation
     init1d();
+
+    getFisheyeImgData();
+    dewarp1d();
 }
 
 /**
@@ -192,6 +192,7 @@ function precompute1d() {
             // This prevents the array from dynamically increasing in size to accomodate the value,
             // resulting in an increase in array lookup time.
             if (src_offset > MAX_1D_ARRAY_SIZE) {
+                console.log("size exceeded");
                 src_offset = MAX_1D_ARRAY_SIZE - 8;
             }
 
@@ -211,5 +212,3 @@ video_feed = document.getElementById("videoElement");
 video_feed.addEventListener( "loadedmetadata", function (e) {
     init_env();
 }, false );
-
-window.setInterval("redisplay()", 100);
