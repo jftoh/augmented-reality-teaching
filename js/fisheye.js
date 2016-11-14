@@ -45,7 +45,7 @@ function getFisheyeImgData() {
         // var end = performance.now();
 
         // console.log("drawImage(): " + (end - start) + "ms");
-        window.setTimeout(getFisheyeImgData, 50); 
+        window.setTimeout(getFisheyeImgData, 150); 
     }
 }
 

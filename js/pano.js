@@ -70,7 +70,7 @@ function getFisheyeImgData() {
 
         // console.log("getImageData(): " + (end - start) + "ms");
         
-        window.setTimeout(getFisheyeImgData, 50); 
+        window.setTimeout(getFisheyeImgData, 150); 
         
     }
 }
@@ -110,9 +110,9 @@ function dewarp1d() {
     }
     var perf_end = performance.now();
 
-    //console.log("dewarp1d(): " + (perf_end - perf_start) + "ms");
+    console.log("dewarp1d(): " + (perf_end - perf_start) + "ms");
 
-    window.setTimeout(dewarp1d); 
+    window.setTimeout(dewarp1d, 0); 
 }
 
 /*----------------*/
