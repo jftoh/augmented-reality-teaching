@@ -45,7 +45,7 @@ function getFisheyeImgData() {
         // var end = performance.now();
 
         // console.log("drawImage(): " + (end - start) + "ms");
-        window.setTimeout(getFisheyeImgData, 150); 
+        window.requestAnimationFrame(getFisheyeImgData); 
     }
 }
 
@@ -63,9 +63,7 @@ function init_env() {
 
     fisheye_ctx = fisheye_canvas.getContext("2d");
 
-    getFisheyeImgData();
-
-
+    window.requestAnimationFrame(getFisheyeImgData); 
 }
 
 //-------------//

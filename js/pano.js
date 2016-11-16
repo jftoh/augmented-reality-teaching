@@ -24,6 +24,9 @@ const DEG2RAD = Math.PI / 180.0;
 // maximum 1D array size for pixel data of length 1944 * 1944 * 4 
 const MAX_1D_ARRAY_SIZE = fisheye_image_width * fisheye_image_height * 4;
 
+const FRAMES_PER_SECOND = 60;
+const TIME_DELAY = 1000 / FRAMES_PER_SECOND;
+
 /*----------------------*/
 /* Buffers and Canvases */
 /*----------------------*/
@@ -65,13 +68,12 @@ function getFisheyeImgData() {
         // console.log("drawImage(): " + (end - start) + "ms");
 
         // var start = performance.now();
-        
+        fisheye_pixels = fisheye_ctx.getImageData(0, 0, fisheye_image_width, fisheye_image_height).data;
         // var end = performance.now();
 
         // console.log("getImageData(): " + (end - start) + "ms");
         
-        window.setTimeout(getFisheyeImgData, 150); 
-        
+        window.requestAnimationFrame(getFisheyeImgData);    
     }
 }
 
@@ -79,8 +81,6 @@ function dewarp1d() {
     var perf_start = performance.now();
     if (fisheye_canvas != null) {
 
-        // Step 1: Get Fisheye image
-        fisheye_pixels = fisheye_ctx.getImageData(0, 0, fisheye_image_width, fisheye_image_height).data;
         var imgdata = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height);
         equi_pixels = imgdata.data;
 
@@ -93,7 +93,7 @@ function dewarp1d() {
                 x = equi_image_width * i + j;
 
                 src = fisheye_data_1d_arr[x];
-                dest_offset = 4 * ((equi_image_height - 1 - i) * equi_image_width + (equi_image_width - 1 - j));;
+                dest_offset = 4 * Math.abs(((equi_image_height - 1 - i) * equi_image_width - (equi_image_width - 1 - j)));
 
                 equi_pixels[dest_offset] = fisheye_pixels[src];
                 equi_pixels[dest_offset + 1] = fisheye_pixels[src + 1];
@@ -101,18 +101,14 @@ function dewarp1d() {
                 equi_pixels[dest_offset + 3] = fisheye_pixels[src + 3];
             }
         }
-    
-        //var perf_start_putimgdata = performance.now();
-        equi_ctx.putImageData(imgdata, 0, 0);
-        //var perf_end_putimgdata = performance.now();
 
-        //console.log("putImageData(): " + (perf_end_putimgdata - perf_start_putimgdata) + "ms");
+        equi_ctx.putImageData(imgdata, 0, 0);
     }
     var perf_end = performance.now();
 
     console.log("dewarp1d(): " + (perf_end - perf_start) + "ms");
 
-    window.setTimeout(dewarp1d, 0); 
+    window.setTimeout(dewarp1d, TIME_DELAY);
 }
 
 /*----------------*/
@@ -131,7 +127,7 @@ function init_env() {
     fisheye_ctx = fisheye_canvas.getContext('2d');
     // var end = performance.now();
 
-    // init equirectangular buffer canvas of 3888 * 1944 pixels
+    // grab canvas of 3888 * 1944 pixels
     equi_canvas = document.getElementById('equi');
     equi_canvas.width = equi_image_width;
     equi_canvas.height = equi_image_height * 2;
@@ -139,25 +135,11 @@ function init_env() {
     equi_ctx = equi_canvas.getContext("2d");
 
     // initializes arrays for pre-computation
-    init1d();
+    precompute1d();
 
     getFisheyeImgData();
-    dewarp1d();
-}
-
-/**
- * Initializes pre-compute states in a 1-dimensional array.
- * init2d() is called to fill in the 2d arrays, then flattens them into
- * 1d arrays
- */
-function init1d() {
-    //console.log("FUNCTION CALL: init_1d");
-   
-    var perf_start = performance.now();
-    precompute1d();
-    var perf_end = performance.now();
-
-    console.log("precompute1d(): " + (perf_end - perf_start) + " ms");
+    
+    setTimeout(dewarp1d, TIME_DELAY);
 }
 
 /**
@@ -192,7 +174,6 @@ function precompute1d() {
             // This prevents the array from dynamically increasing in size to accomodate the value,
             // resulting in an increase in array lookup time.
             if (src_offset > MAX_1D_ARRAY_SIZE) {
-                console.log("size exceeded");
                 src_offset = MAX_1D_ARRAY_SIZE - 8;
             }
 
