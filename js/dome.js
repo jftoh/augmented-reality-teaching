@@ -61,7 +61,7 @@ var mouseDownPosLastY = 0;
 
 var cam_heading = 45.0;
 var cam_pitch = 45.0;
-var cam_fov = 45;
+var cam_fov = 90;
 
 /*---------------------*/
 /* Pre-Computed States */
@@ -301,7 +301,7 @@ function mouseMove(e) {
     if (mouseIsDown == true) {
         cam_heading -= (e.clientX - mouseDownPosLastX);
         cam_pitch += 0.5 * (e.clientY - mouseDownPosLastY);
-        cam_pitch = Math.min(180, Math.max(0, cam_pitch));
+        cam_pitch = Math.min(45, Math.max(0, cam_pitch));
         mouseDownPosLastX = e.clientX;
         mouseDownPosLastY = e.clientY;
     }
