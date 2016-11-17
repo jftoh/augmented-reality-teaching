@@ -40,6 +40,7 @@ var equi_ctx = null;
 var dome_ctx = null;
 
 var dome_imgdata = null;
+var equi_imgdata = null;
 
 /*------------*/
 /* Video Feed */
@@ -73,6 +74,36 @@ var fisheye_data_1d_arr = new Array(fisheye_image_width * fisheye_image_height);
 /* Capturing Video Feed */
 /*----------------------*/
 
+function render(timestamp) {
+    getFisheyeImgData();
+    dewarp1d();
+    renderDome();
+
+    var time_taken = performance.now() - timestamp;
+
+    console.log("render(): " + time_taken + "ms");  
+
+    window.requestAnimationFrame(render);
+}
+
+/**
+ * obtains a single frame of the fisheye video feed from an off-screen canvas
+ * and transforms it into a panorama.
+ */
+function dewarp(timestamp) {
+    getFisheyeImgData();
+    dewarp1d();
+
+    var time_taken = performance.now() - timestamp;
+
+    // console.log("dewarp(): " + time_taken + "ms");  
+
+    window.requestAnimationFrame(dewarp);
+}
+
+/**
+ * obtains a single frame of the fisheye video feed from an off-screen canvas.
+ */
 function getFisheyeImgData() {
     if (fisheye_canvas != null && video_feed != null) {
         // var fisheye_ctx = fisheye_canvas.getContext("2d");
@@ -92,15 +123,16 @@ function getFisheyeImgData() {
 
         // console.log("getImageData(): " + (end - start) + "ms");
     }
-    window.requestAnimationFrame(getFisheyeImgData);
+    // window.requestAnimationFrame(getFisheyeImgData);
 }
 
+/**
+ * Transforms a fisheye image into a panorama.
+ * pixel mappings were pre-calculated.
+ * refer to function precompute1d().
+ */
 function dewarp1d() {
     if (fisheye_canvas != null) {
-        var imgdata = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height);
-        equi_pixels = imgdata.data;
-
-        var perf_start = performance.now();
         
         var x, src, dest_offset;
 
@@ -119,12 +151,11 @@ function dewarp1d() {
                 equi_pixels[dest_offset + 3] = fisheye_pixels[src + 3];
             }
         }
-        var perf_end = performance.now();
 
         // console.log("nested for loops (1d array): " + (perf_end - perf_start) + "ms");   
     }
 
-    window.requestAnimationFrame(dewarp1d);
+    // window.requestAnimationFrame(dewarp1d);
 }
 
 /*----------------*/
@@ -133,7 +164,7 @@ function dewarp1d() {
 
 function renderDome() {
     // console.log("FUNCTION CALL: renderDome()");
-    var perf_start = performance.now();
+    // var perf_start = performance.now();
     if (dome_canvas != null) {
         var src_width = equi_canvas.width;
         var src_height = equi_canvas.height;
@@ -186,7 +217,7 @@ function renderDome() {
 
             }
         }
-        var perf_end = performance.now();
+        // var perf_end = performance.now();
         // console.log("renderDome(): " + (perf_end - perf_start) + " ms");
 
         //upload image data
@@ -222,6 +253,9 @@ function init_env() {
 
     equi_ctx = equi_canvas.getContext("2d");
 
+    equi_imgdata = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height);
+    equi_pixels = equi_imgdata.data;
+
     // initializes arrays for pre-computation
     precompute1d();
 
@@ -233,17 +267,14 @@ function init_env() {
     dome_imgdata = dome_ctx.getImageData(0, 0, dome_canvas.width, dome_canvas.height);
     dome_pixels = dome_imgdata.data;
 
-    // console.log(dome_canvas.width);
-    // console.log(dome_canvas.height);
-
     // set mouse controls
     window.onmousemove = mouseMove;
     window.onmouseup = mouseUp;
     window.onmousewheel = mouseScroll;
 
-    getFisheyeImgData();
-    dewarp1d();
+    dewarp();
     renderDome();
+    // render();
 }
 
 /**

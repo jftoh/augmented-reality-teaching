@@ -40,6 +40,8 @@ var equi_pixels = null;
 var fisheye_ctx = null;
 var equi_ctx = null;
 
+var equi_imgdata = null;
+
 /*------------*/
 /* Video Feed */
 /*------------*/
@@ -55,6 +57,17 @@ var fisheye_data_1d_arr = new Array(fisheye_image_width * fisheye_image_height);
 /*----------------------*/
 /* Capturing Video Feed */
 /*----------------------*/
+
+function render(timestamp) {
+    getFisheyeImgData();
+    dewarp1d();
+
+    var time_taken = performance.now() - timestamp;
+
+    console.log("render(): " + time_taken + "ms");  
+
+    window.requestAnimationFrame(render);
+}
 
 function getFisheyeImgData() {
     if (fisheye_canvas != null && video_feed != null) {
@@ -73,16 +86,13 @@ function getFisheyeImgData() {
 
         // console.log("getImageData(): " + (end - start) + "ms");
         
-        window.requestAnimationFrame(getFisheyeImgData);    
+        // window.requestAnimationFrame(getFisheyeImgData);    
     }
 }
 
 function dewarp1d() {
     var perf_start = performance.now();
     if (fisheye_canvas != null) {
-
-        var imgdata = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height);
-        equi_pixels = imgdata.data;
 
         var x, src, dest_offset;
 
@@ -102,13 +112,13 @@ function dewarp1d() {
             }
         }
 
-        equi_ctx.putImageData(imgdata, 0, 0);
+        equi_ctx.putImageData(equi_imgdata, 0, 0);
     }
     var perf_end = performance.now();
 
-    console.log("dewarp1d(): " + (perf_end - perf_start) + "ms");
+    // console.log("dewarp1d(): " + (perf_end - perf_start) + "ms");
 
-    window.setTimeout(dewarp1d, TIME_DELAY);
+    // window.requestAnimationFrame(dewarp1d);
 }
 
 /*----------------*/
@@ -134,12 +144,18 @@ function init_env() {
 
     equi_ctx = equi_canvas.getContext("2d");
 
+    equi_imgdata = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height);
+    equi_pixels = equi_imgdata.data;
+
+
     // initializes arrays for pre-computation
     precompute1d();
 
-    getFisheyeImgData();
+    // getFisheyeImgData();
     
-    setTimeout(dewarp1d, TIME_DELAY);
+    // dewarp1d();
+    render(); 
+    
 }
 
 /**
