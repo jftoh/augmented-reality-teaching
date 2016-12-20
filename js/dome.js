@@ -40,6 +40,7 @@ var equi_ctx = null;
 var dome_ctx = null;
 
 var dome_imgdata = null;
+var equi_imgdata = null;
 
 /*------------*/
 /* Video Feed */
@@ -61,7 +62,7 @@ var mouseDownPosLastY = 0;
 
 var cam_heading = 45.0;
 var cam_pitch = 45.0;
-var cam_fov = 45;
+var cam_fov = 90;
 
 /*---------------------*/
 /* Pre-Computed States */
@@ -73,18 +74,36 @@ var fisheye_data_1d_arr = new Array(fisheye_image_width * fisheye_image_height);
 /* Capturing Video Feed */
 /*----------------------*/
 
-function redisplay() {
-    //console.log("FUNCTION CALL: redisplay()");
-
+function render(timestamp) {
     getFisheyeImgData();
-
-    // dewarp original image
     dewarp1d();
+    renderDome();
 
-    // draw equirectangular panorama onto pano canvas
-    render();
+    var time_taken = performance.now() - timestamp;
+
+    console.log("render(): " + time_taken + "ms");  
+
+    window.requestAnimationFrame(render);
 }
 
+/**
+ * obtains a single frame of the fisheye video feed from an off-screen canvas
+ * and transforms it into a panorama.
+ */
+function dewarp(timestamp) {
+    getFisheyeImgData();
+    dewarp1d();
+
+    var time_taken = performance.now() - timestamp;
+
+    // console.log("dewarp(): " + time_taken + "ms");  
+
+    window.requestAnimationFrame(dewarp);
+}
+
+/**
+ * obtains a single frame of the fisheye video feed from an off-screen canvas.
+ */
 function getFisheyeImgData() {
     if (fisheye_canvas != null && video_feed != null) {
         // var fisheye_ctx = fisheye_canvas.getContext("2d");
@@ -104,14 +123,16 @@ function getFisheyeImgData() {
 
         // console.log("getImageData(): " + (end - start) + "ms");
     }
+    // window.requestAnimationFrame(getFisheyeImgData);
 }
 
+/**
+ * Transforms a fisheye image into a panorama.
+ * pixel mappings were pre-calculated.
+ * refer to function precompute1d().
+ */
 function dewarp1d() {
     if (fisheye_canvas != null) {
-        var imgdata = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height);
-        equi_pixels = imgdata.data;
-
-        var perf_start = performance.now();
         
         var x, src, dest_offset;
 
@@ -122,7 +143,7 @@ function dewarp1d() {
                 x = equi_image_width * i + j;
 
                 src = fisheye_data_1d_arr[x];
-                dest_offset = 4 * ((equi_image_height - 1 - i) * equi_image_width + (equi_image_width - 1 - j));;
+                dest_offset = 4 * Math.abs(((equi_image_height - 1 - i) * equi_image_width - (equi_image_width - 1 - j)));
 
                 equi_pixels[dest_offset] = fisheye_pixels[src];
                 equi_pixels[dest_offset + 1] = fisheye_pixels[src + 1];
@@ -130,20 +151,20 @@ function dewarp1d() {
                 equi_pixels[dest_offset + 3] = fisheye_pixels[src + 3];
             }
         }
-        var perf_end = performance.now();
 
-        // equi_ctx.putImageData(imgdata, 0, 0);
-
-        // console.log("nested for loops (1d array): " + (perf_end - perf_start) + "ms");
+        // console.log("nested for loops (1d array): " + (perf_end - perf_start) + "ms");   
     }
+
+    // window.requestAnimationFrame(dewarp1d);
 }
 
 /*----------------*/
 /* Dome Rendering */
 /*----------------*/
 
-function renderPanorama() {
-    //console.log("FUNCTION CALL: renderPanorama()");
+function renderDome() {
+    // console.log("FUNCTION CALL: renderDome()");
+    // var perf_start = performance.now();
     if (dome_canvas != null) {
         var src_width = equi_canvas.width;
         var src_height = equi_canvas.height;
@@ -197,24 +218,13 @@ function renderPanorama() {
             }
         }
         // var perf_end = performance.now();
-        // console.log("renderPanorama(): " + (perf_end - perf_start) + " ms");
+        // console.log("renderDome(): " + (perf_end - perf_start) + " ms");
 
         //upload image data
         dome_ctx.putImageData(dome_imgdata, 0, 0);
     }
-}
 
-function render() {
-    if (dome_canvas != null && dome_canvas.getContext != null) {
-
-        var ctx = dome_canvas.getContext("2d");
-
-        //clear canvas
-        ctx.fillStyle = "rgba(0, 0, 0, 1)";
-        ctx.fillRect(0, 0, dome_canvas.width, dome_canvas.height);
-
-        renderPanorama();
-    }
+    window.requestAnimationFrame(renderDome);
 }
 
 /*----------------*/
@@ -225,7 +235,7 @@ function init_env() {
     //console.log("FUNCTION CALL: init_env()");
 
     // init fisheye buffer canvas of dimensions equal to video feed.
-    fisheye_canvas = document.getElementById('fisheye');
+    fisheye_canvas = document.createElement('canvas');
     fisheye_canvas.width = fisheye_canvas_width;
     fisheye_canvas.height = fisheye_canvas_height;
 
@@ -237,14 +247,17 @@ function init_env() {
     // console.log("Video height: " + video_feed.videoHeight);
 
     // init equirectangular buffer canvas of 3888 * 1944 pixels
-    equi_canvas = document.getElementById('equi');
+    equi_canvas = document.createElement('canvas');
     equi_canvas.width = equi_image_width;
     equi_canvas.height = equi_image_height * 2;
 
     equi_ctx = equi_canvas.getContext("2d");
 
+    equi_imgdata = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height);
+    equi_pixels = equi_imgdata.data;
+
     // initializes arrays for pre-computation
-    init1d();
+    precompute1d();
 
     // get dome canvas
     dome_canvas = document.getElementById('dome');
@@ -254,28 +267,14 @@ function init_env() {
     dome_imgdata = dome_ctx.getImageData(0, 0, dome_canvas.width, dome_canvas.height);
     dome_pixels = dome_imgdata.data;
 
-    // console.log(dome_canvas.width);
-    // console.log(dome_canvas.height);
-
     // set mouse controls
     window.onmousemove = mouseMove;
     window.onmouseup = mouseUp;
     window.onmousewheel = mouseScroll;
-}
 
-/**
- * Initializes pre-compute states in a 1-dimensional array.
- * init2d() is called to fill in the 2d arrays, then flattens them into
- * 1d arrays
- */
-function init1d() {
-    //console.log("FUNCTION CALL: init_1d");
-   
-    var perf_start = performance.now();
-    precompute1d();
-    var perf_end = performance.now();
-
-    console.log("precompute1d(): " + (perf_end - perf_start) + " ms");
+    dewarp();
+    renderDome();
+    // render();
 }
 
 /**
@@ -310,6 +309,7 @@ function precompute1d() {
             // This prevents the array from dynamically increasing in size to accomodate the value,
             // resulting in an increase in array lookup time.
             if (src_offset > MAX_1D_ARRAY_SIZE) {
+                // console.log("size exceeded");
                 src_offset = MAX_1D_ARRAY_SIZE - 8;
             }
 
@@ -332,22 +332,19 @@ function mouseMove(e) {
     if (mouseIsDown == true) {
         cam_heading -= (e.clientX - mouseDownPosLastX);
         cam_pitch += 0.5 * (e.clientY - mouseDownPosLastY);
-        cam_pitch = Math.min(180, Math.max(0, cam_pitch));
+        cam_pitch = Math.min(45, Math.max(0, cam_pitch));
         mouseDownPosLastX = e.clientX;
         mouseDownPosLastY = e.clientY;
-        render();
     }
 }
 
 function mouseUp(e) {
     mouseIsDown = false;
-    render();
 }
 
 function mouseScroll(e) {
     cam_fov += e.wheelDelta / 120;
     cam_fov = Math.min(90, Math.max(30, cam_fov));
-    render();
 }
 
 //-------------//
@@ -361,5 +358,3 @@ video_feed = document.getElementById("videoElement");
 video_feed.addEventListener( "loadedmetadata", function (e) {
     init_env();
 }, false );
-
-window.setInterval("redisplay()", 100);

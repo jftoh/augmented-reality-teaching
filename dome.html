@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="text/css" href="css/dome.css">
+  <title>USB Dome Perspective Demo</title>
+</head>
+
+<body>
+
+  <h1>USB Dome Perspective Demo</h1>
+
+  <!-- For devices that support getUserMedia and have a webcam we can display the feed in a video element -->
+  <div id="videoContainer" hidden="true">
+  	<!-- Video feed has a native display of -->
+    <video autoplay id="videoElement"></video>
+  </div>
+
+  <!-- Displays the resultant dome -->
+  <div id="domeContainer">
+  	<canvas id="dome" width="640" height="480"></canvas>
+  </div>
+	
+  <script type="text/javascript" src="js/videofeed.js"></script>
+  <script type="text/javascript" src="js/dome.js"></script>
+</body>
+
+</html>
