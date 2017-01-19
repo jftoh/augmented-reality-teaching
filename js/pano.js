@@ -1,201 +1,215 @@
-// pano.js 
+// pano.js
 // author: Toh Jian Feng
 
 /*-----------*/
 /* Constants */
 /*-----------*/
 
-// Original fisheye image dimensions according to USB webcam.
-const fisheye_image_width = 1944;
-const fisheye_image_height = 1944;
-
-const fisheye_canvas_width = 1944;
-const fisheye_canvas_height = 1944;
-
-const fisheye_image_x_origin = (2592 - 1944) / 2;
-
-// Panorama Image dimensions.
-const equi_image_width = fisheye_image_width * 2;
-const equi_image_height = fisheye_image_width / 2;
-
-// conversion constant from degrees to radians
-const DEG2RAD = Math.PI / 180.0;
-
-// maximum 1D array size for pixel data of length 1944 * 1944 * 4 
-const MAX_1D_ARRAY_SIZE = fisheye_image_width * fisheye_image_height * 4;
-
-const FRAMES_PER_SECOND = 60;
-const TIME_DELAY = 1000 / FRAMES_PER_SECOND;
-
 /*----------------------*/
 /* Buffers and Canvases */
 /*----------------------*/
 
-var equi_canvas = null;
-var fisheye_canvas = null;
+var fisheyeCanvas = null;
+var fisheyeCtx = null;
+var fisheyePixels = null;
 
-var fisheye_pixels = null;
-var equi_pixels = null;
 
-var fisheye_ctx = null;
-var equi_ctx = null;
-
-var equi_imgdata = null;
+// Original fisheye image dimensions according to USB webcam.
+var fisheyeVidWidth, fisheyeVidHeight = null;
+var fisheyeVidXOrigin = null;
+var panoVidWidth, panoVidHeight = null;
+var scene, camera, renderer = null;
 
 /*------------*/
 /* Video Feed */
 /*------------*/
 
-var video_feed = null;
+var videoFeed = null;
 
 /*---------------------*/
 /* Pre-Computed States */
 /*---------------------*/
 
-var fisheye_data_1d_arr = new Array(fisheye_image_width * fisheye_image_height);
+var MAX_1D_ARRAY_SIZE = null;
+var fisheyeSrcArr = null;
+var panoPixelArr = null;
+var dataTextureArr = null;
+
+/*---------------*/
+/* Data Textures */
+/*---------------*/
+
+var dataTexture = null;
 
 /*----------------------*/
 /* Capturing Video Feed */
 /*----------------------*/
 
-function render(timestamp) {
-    getFisheyeImgData();
-    dewarp1d();
+function readFisheyeImg () {
+    fisheyeCtx.drawImage( videoFeed,
+                          fisheyeVidXOrigin, 0,
+                          fisheyeVidHeight, fisheyeVidHeight,
+                          0, 0,
+                          fisheyeVidHeight, fisheyeVidHeight );
 
-    var time_taken = performance.now() - timestamp;
-
-    console.log("render(): " + time_taken + "ms");  
-
-    window.requestAnimationFrame(render);
+    fisheyePixels = fisheyeCtx.getImageData(0, 0, fisheyeVidHeight, fisheyeVidHeight ).data;
 }
 
-function getFisheyeImgData() {
-    if (fisheye_canvas != null && video_feed != null) {
-        // Original video feed dimensions are at 2592 X 1944 pixels.
-        // We only require the fisheye image of dimensions 1944 X 1944 pixels
-         
-        // var start = performance.now();
-        fisheye_ctx.drawImage(video_feed, fisheye_image_x_origin, 0, fisheye_image_width, fisheye_image_height, 0, 0, fisheye_image_width, fisheye_image_height);
-        // var end = performance.now();
+function displayFeed () {
+    var screenGeometry = new THREE.PlaneGeometry( panoVidWidth, panoVidHeight );
+    dataTextureArr = new Uint8Array( panoPixelArr );
 
-        // console.log("drawImage(): " + (end - start) + "ms");
+    dataTexture = new THREE.DataTexture( dataTextureArr, panoVidWidth, panoVidHeight, THREE.RGBAFormat );
 
-        // var start = performance.now();
-        fisheye_pixels = fisheye_ctx.getImageData(0, 0, fisheye_image_width, fisheye_image_height).data;
-        // var end = performance.now();
+    dataTexture.minFilter = THREE.LinearFilter;
+    dataTexture.magFilter = THREE.LinearFilter;
+    dataTexture.generateMipmaps = false;
 
-        // console.log("getImageData(): " + (end - start) + "ms");
-        
-        // window.requestAnimationFrame(getFisheyeImgData);    
-    }
+    var screenMaterial = new THREE.MeshBasicMaterial( {
+        map: dataTexture
+    } );
+
+    var screen = new THREE.Mesh( screenGeometry, screenMaterial );
+    scene.add( screen );
 }
 
-function dewarp1d() {
-    var perf_start = performance.now();
-    if (fisheye_canvas != null) {
+function buildScene () {
+    scene.add( camera );
 
-        var x, src, dest_offset;
+    displayFeed();
+    animate();
+}
 
-        for (var i = 0; i < equi_image_height; i++) {
+/*-------------------*/
+/* Fisheye Dewarping */
+/*-------------------*/
 
-            for (var j = 0; j < equi_image_width; j++) {
+function dewarp () {
+    var x, srcArrPos, destArrPos;
 
-                x = equi_image_width * i + j;
+    // var perf_start = performance.now();
+    for (var i = 0; i < panoVidHeight; i++) {
 
-                src = fisheye_data_1d_arr[x];
-                dest_offset = 4 * Math.abs(((equi_image_height - 1 - i) * equi_image_width - (equi_image_width - 1 - j)));
+        for (var j = 0; j < panoVidWidth; j++) {
 
-                equi_pixels[dest_offset] = fisheye_pixels[src];
-                equi_pixels[dest_offset + 1] = fisheye_pixels[src + 1];
-                equi_pixels[dest_offset + 2] = fisheye_pixels[src + 2];
-                equi_pixels[dest_offset + 3] = fisheye_pixels[src + 3];
-            }
+            x = panoVidWidth * i + j;
+
+            srcArrPos = fisheyeSrcArr[ x ];
+
+            destArrPos = 4 * (i * panoVidWidth + j);
+
+            panoPixelArr[ destArrPos ] = fisheyePixels[ srcArrPos ];
+            panoPixelArr[ destArrPos + 1 ] = fisheyePixels[ srcArrPos + 1 ];
+            panoPixelArr[ destArrPos + 2 ] = fisheyePixels[ srcArrPos + 2 ];
+            panoPixelArr[ destArrPos + 3 ] = fisheyePixels[ srcArrPos + 3 ];
         }
-
-        equi_ctx.putImageData(equi_imgdata, 0, 0);
     }
-    var perf_end = performance.now();
 
-    // console.log("dewarp1d(): " + (perf_end - perf_start) + "ms");
-
-    // window.requestAnimationFrame(dewarp1d);
-}
-
-/*----------------*/
-/* Initialization */
-/*----------------*/
-
-function init_env() {
-    //console.log("FUNCTION CALL: init_env()");
-
-    // init fisheye buffer canvas of dimensions equal to video feed.
-    fisheye_canvas = document.createElement('canvas');
-    fisheye_canvas.width = fisheye_canvas_width;
-    fisheye_canvas.height = fisheye_canvas_height;
-
-    // var start = performance.now();
-    fisheye_ctx = fisheye_canvas.getContext('2d');
-    // var end = performance.now();
-
-    // grab canvas of 3888 * 1944 pixels
-    equi_canvas = document.getElementById('equi');
-    equi_canvas.width = equi_image_width;
-    equi_canvas.height = equi_image_height * 2;
-
-    equi_ctx = equi_canvas.getContext("2d");
-
-    equi_imgdata = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height);
-    equi_pixels = equi_imgdata.data;
-
-
-    // initializes arrays for pre-computation
-    precompute1d();
-
-    // getFisheyeImgData();
-    
-    // dewarp1d();
-    render(); 
-    
+    dataTextureArr.set( panoPixelArr );
+    dataTexture.needsUpdate = true;
+    // var perf_end = performance.now();
+    // console.log('dewarp: ' + (perf_end - perf_start) + 'ms');
 }
 
 /**
  * Fills the pre-compute state arrays with fixed values
  * used for the dewarp algorithm.
  */
-function precompute1d() {
-    var radius, theta, para_true_x, para_true_y, x, y;
-    var dest_offset, src_offset;
+function precomputeSrcCoords () {
+    var radius, theta;
+    var paraTrueX, paraTrueY;
+    var x, y;
+    var srcArrPos;
 
-    for (var i = 0; i < equi_image_height; i++) {
+    // var perf_start = performance.now();
+    for ( var i = 0; i < panoVidHeight; i++ ) {
 
-        radius = (equi_image_height - i);
+        radius = ( panoVidHeight - i );
 
-        for (var j = 0; j < equi_image_width; j++) {
+        for ( var j = 0; j < panoVidWidth; j++ ) {
 
-            theta = 2 * Math.PI * -j / (4 * equi_image_height);
+            theta = 2 * Math.PI * -j / ( 4 * panoVidHeight );
 
             // find true (x, y) coordinates based on parametric
             // equation of circle.
-            para_true_x = radius * Math.cos(theta);
-            para_true_y = radius * Math.sin(theta);
+            paraTrueX = radius * Math.cos( theta );
+            paraTrueY = radius * Math.sin( theta );
 
             // scale true coordinates to integer-based coordinates
             // (1 pixel is of size 1 * 1)
-            x = Math.round(para_true_x) + equi_image_height;
-            y = equi_image_height - Math.round(para_true_y);
+            x = Math.round( paraTrueX ) + panoVidHeight;
+            y = panoVidHeight - Math.round( paraTrueY );
 
-            src_offset = 4 * (x * fisheye_image_width + y);
+            srcArrPos = 4 * ( x * fisheyeVidHeight + y );
 
             // Checks if the offset is greater than MAX_1D_ARRAY_VALUE.
             // This prevents the array from dynamically increasing in size to accomodate the value,
             // resulting in an increase in array lookup time.
-            if (src_offset > MAX_1D_ARRAY_SIZE) {
-                src_offset = MAX_1D_ARRAY_SIZE - 8;
+            if ( srcArrPos > MAX_1D_ARRAY_SIZE ) {
+                srcArrPos = MAX_1D_ARRAY_SIZE - 8;
             }
 
-            fisheye_data_1d_arr[i * equi_image_width + j] = src_offset;
+            fisheyeSrcArr[ i * panoVidWidth + j ] = srcArrPos;
         }
     }
+    // var perf_end = performance.now();
+
+    // console.log('precompute(): ' + (perf_end - perf_start) + 'ms');
+}
+
+
+/*----------------*/
+/* Initialization */
+/*----------------*/
+
+function initEnv ( vidWidth, vidHeight ) {
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera( 50, vidWidth / vidHeight,
+        0.1, 3888 );
+    camera.position.z = 1000;
+
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize( vidWidth, vidHeight );
+    document.body.appendChild( renderer.domElement );
+}
+
+function initOffScrnCanvas () {
+    fisheyeCanvas = document.createElement( 'canvas' );
+    fisheyeCanvas.width = fisheyeVidHeight;
+    fisheyeCanvas.height = fisheyeVidHeight;
+
+    fisheyeCtx = fisheyeCanvas.getContext( '2d' );
+}
+
+function recordFisheyeDimensions ( videoFeed ) {
+    fisheyeVidWidth = videoFeed.videoWidth;
+    fisheyeVidHeight = videoFeed.videoHeight;
+    fisheyeVidXOrigin = ( fisheyeVidWidth - fisheyeVidHeight ) / 2;
+    MAX_1D_ARRAY_SIZE = 4 * fisheyeVidHeight * fisheyeVidHeight;
+    fisheyeSrcArr = new Array( fisheyeVidHeight * fisheyeVidHeight );
+}
+
+function setPanoDimensions () {
+    panoVidWidth = fisheyeVidHeight * 2;
+    panoVidHeight = fisheyeVidHeight / 2;
+    panoPixelArr = new Uint8ClampedArray( 4 * panoVidWidth * panoVidHeight );
+
+}
+
+/*-----------*/
+/* Rendering */
+/*-----------*/
+
+function render () {
+    readFisheyeImg();
+    dewarp();
+
+    renderer.render( scene, camera );
+}
+
+function animate () {
+    requestAnimationFrame( animate );
+    render();
 }
 
 //-------------//
@@ -203,9 +217,14 @@ function precompute1d() {
 //-------------//
 
 // grab video feed
-video_feed = document.getElementById("videoElement");
+videoFeed = document.getElementById('videoElement');
 
 // only obtain video feed dimensions after feed has fully loaded.
-video_feed.addEventListener( "loadedmetadata", function (e) {
-    init_env();
+videoFeed.addEventListener( 'loadedmetadata', function () {
+    recordFisheyeDimensions( videoFeed );
+    setPanoDimensions();
+    precomputeSrcCoords();
+    initEnv( panoVidWidth, panoVidHeight );
+    initOffScrnCanvas();
+    buildScene();
 }, false );

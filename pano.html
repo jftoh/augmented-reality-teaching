@@ -4,22 +4,17 @@
 <head>
   <meta charset="UTF-8">
   <link rel="stylesheet" type="text/css" href="css/dome.css">
+  <script type="text/javascript" src="js/lib/three.min.js"></script>
   <title>Panorama Video Feed</title>
 </head>
 
 <body>
-
   <h1>Panorama Video Feed</h1>
 
   <!-- For devices that support getUserMedia and have a webcam we can display the feed in a video element -->
   <div id="videoContainer" hidden="true">
     <!-- Video feed has a native display of -->
     <video autoplay id="videoElement"></video>
-  </div>
-
-  <!-- Displays the dewarped image -->
-  <div id="equiContainer">
-    <canvas id="equi"></canvas>
   </div>
 
   <script type="text/javascript" src="js/videofeed.js"></script>
