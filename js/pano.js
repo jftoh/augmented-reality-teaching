@@ -1,10 +1,6 @@
 // pano.js
 // author: Toh Jian Feng
 
-/*-----------*/
-/* Constants */
-/*-----------*/
-
 /*----------------------*/
 /* Buffers and Canvases */
 /*----------------------*/

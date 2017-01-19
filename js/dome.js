@@ -1,350 +1,221 @@
-// dome.js author: Toh Jian Feng
-
-/*-----------*/
-/* Constants */
-/*-----------*/
-
-// Original fisheye image dimensions according to USB webcam.
-const fisheye_image_width = 1944;
-const fisheye_image_height = 1944;
-
-const fisheye_canvas_width = 1944;
-const fisheye_canvas_height = 1944;
-
-const fisheye_image_x_origin = (2592 - 1944) / 2;
-
-// Panorama Image dimensions.
-const equi_image_width = fisheye_image_width * 2;
-const equi_image_height = fisheye_image_width / 2;
-
-// conversion constant from degrees to radians
-const DEG2RAD = Math.PI / 180.0;
-
-// maximum 1D array size for pixel data of length 1944 * 1944 * 4 
-const MAX_1D_ARRAY_SIZE = fisheye_image_width * fisheye_image_height * 4;
+// dome.js
+// author: Toh Jian Feng
 
 /*----------------------*/
 /* Buffers and Canvases */
 /*----------------------*/
 
-var dome_canvas = null;
-var equi_canvas = null;
-var fisheye_canvas = null;
+var fisheyeCanvas = null;
+var fisheyeCtx = null;
+var fisheyePixels = null;
 
-var fisheye_pixels = null;
-var equi_pixels = null;
-var dome_pixels = null;
-
-var fisheye_ctx = null;
-var equi_ctx = null;
-var dome_ctx = null;
-
-var dome_imgdata = null;
-var equi_imgdata = null;
+// Original fisheye image dimensions according to USB webcam.
+var fisheyeVidWidth, fisheyeVidHeight = null;
+var fisheyeVidXOrigin = null;
+var panoVidWidth, panoVidHeight = null;
+var scene, camera, renderer = null;
+var controls = null;
 
 /*------------*/
 /* Video Feed */
 /*------------*/
 
-var video_feed = null;
-
-/*--------------------*/
-/* Mouse Event States */
-/*--------------------*/
-
-var mouseIsDown = false;
-var mouseDownPosLastX = 0;
-var mouseDownPosLastY = 0;
-
-/*---------------*/
-/* Camera States */
-/*---------------*/
-
-var cam_heading = 45.0;
-var cam_pitch = 45.0;
-var cam_fov = 90;
+var videoFeed = null;
 
 /*---------------------*/
 /* Pre-Computed States */
 /*---------------------*/
 
-var fisheye_data_1d_arr = new Array(fisheye_image_width * fisheye_image_height);
+var MAX_1D_ARRAY_SIZE = null;
+var fisheyeSrcArr = null;
+var panoPixelArr = null;
+var dataTextureArr = null;
+
+/*---------------*/
+/* Data Textures */
+/*---------------*/
+
+var dataTexture = null;
 
 /*----------------------*/
 /* Capturing Video Feed */
 /*----------------------*/
 
-function render(timestamp) {
-    getFisheyeImgData();
-    dewarp1d();
-    renderDome();
+function readFisheyeImg () {
+    fisheyeCtx.drawImage( videoFeed,
+                          fisheyeVidXOrigin, 0,
+                          fisheyeVidHeight, fisheyeVidHeight,
+                          0, 0,
+                          fisheyeVidHeight, fisheyeVidHeight );
 
-    var time_taken = performance.now() - timestamp;
-
-    console.log("render(): " + time_taken + "ms");  
-
-    window.requestAnimationFrame(render);
+    fisheyePixels = fisheyeCtx.getImageData(0, 0, fisheyeVidHeight, fisheyeVidHeight ).data;
 }
 
-/**
- * obtains a single frame of the fisheye video feed from an off-screen canvas
- * and transforms it into a panorama.
- */
-function dewarp(timestamp) {
-    getFisheyeImgData();
-    dewarp1d();
+function displayFeed () {
+    var sphereGeometry = new THREE.SphereGeometry( 972, 64, 64 );
+    dataTextureArr = new Uint8Array( panoPixelArr );
 
-    var time_taken = performance.now() - timestamp;
+    dataTexture = new THREE.DataTexture( dataTextureArr, panoVidWidth, panoVidHeight, THREE.RGBAFormat );
 
-    // console.log("dewarp(): " + time_taken + "ms");  
+    dataTexture.minFilter = THREE.LinearFilter;
+    dataTexture.magFilter = THREE.LinearFilter;
+    dataTexture.generateMipmaps = false;
 
-    window.requestAnimationFrame(dewarp);
+    var sphereMaterial = new THREE.MeshBasicMaterial( {
+        map: dataTexture
+    } );
+
+    var screen = new THREE.Mesh( sphereGeometry, sphereMaterial );
+    scene.add( screen );
 }
 
-/**
- * obtains a single frame of the fisheye video feed from an off-screen canvas.
- */
-function getFisheyeImgData() {
-    if (fisheye_canvas != null && video_feed != null) {
-        // var fisheye_ctx = fisheye_canvas.getContext("2d");
+function buildScene () {
+    scene.add( camera );
 
-        // Original video feed dimensions are at 2592 X 1944 pixels.
-        // We only require the fisheye image of dimensions 1944 X 1944 pixels
-         
-        // var start = performance.now();
-        fisheye_ctx.drawImage(video_feed, fisheye_image_x_origin, 0, fisheye_image_width, fisheye_image_height, 0, 0, fisheye_image_width, fisheye_image_height);
-        // var end = performance.now();
-
-        // console.log("drawImage(): " + (end - start) + "ms");
-
-        // var start = performance.now();
-        fisheye_pixels = fisheye_ctx.getImageData(0, 0, fisheye_image_width, fisheye_image_height).data;
-        // var end = performance.now();
-
-        // console.log("getImageData(): " + (end - start) + "ms");
-    }
-    // window.requestAnimationFrame(getFisheyeImgData);
+    displayFeed();
+    animate();
 }
 
-/**
- * Transforms a fisheye image into a panorama.
- * pixel mappings were pre-calculated.
- * refer to function precompute1d().
- */
-function dewarp1d() {
-    if (fisheye_canvas != null) {
-        
-        var x, src, dest_offset;
+/*-------------------*/
+/* Fisheye Dewarping */
+/*-------------------*/
 
-        for (var i = 0; i < equi_image_height; i++) {
+function dewarp () {
+    var x, srcArrPos, destArrPos;
 
-            for (var j = 0; j < equi_image_width; j++) {
-
-                x = equi_image_width * i + j;
-
-                src = fisheye_data_1d_arr[x];
-                dest_offset = 4 * Math.abs(((equi_image_height - 1 - i) * equi_image_width - (equi_image_width - 1 - j)));
-
-                equi_pixels[dest_offset] = fisheye_pixels[src];
-                equi_pixels[dest_offset + 1] = fisheye_pixels[src + 1];
-                equi_pixels[dest_offset + 2] = fisheye_pixels[src + 2];
-                equi_pixels[dest_offset + 3] = fisheye_pixels[src + 3];
-            }
-        }
-
-        // console.log("nested for loops (1d array): " + (perf_end - perf_start) + "ms");   
-    }
-
-    // window.requestAnimationFrame(dewarp1d);
-}
-
-/*----------------*/
-/* Dome Rendering */
-/*----------------*/
-
-function renderDome() {
-    // console.log("FUNCTION CALL: renderDome()");
     // var perf_start = performance.now();
-    if (dome_canvas != null) {
-        var src_width = equi_canvas.width;
-        var src_height = equi_canvas.height;
-        var dest_width = dome_canvas.width;
-        var dest_height = dome_canvas.height;
+    for (var i = 0; i < panoVidHeight; i++) {
 
-        //calculate camera plane
-        var theta_fac = src_height / Math.PI;
-        var phi_fac = src_width * 0.5 / Math.PI
-        var ratioUp = 2.0 * Math.tan(cam_fov * DEG2RAD / 2.0);
-        var ratioRight = ratioUp * 1.33;
-        var camDirX = Math.sin(cam_pitch * DEG2RAD) * Math.sin(cam_heading * DEG2RAD);
-        var camDirY = Math.cos(cam_pitch * DEG2RAD);
-        var camDirZ = Math.sin(cam_pitch * DEG2RAD) * Math.cos(cam_heading * DEG2RAD);
-        var camUpX = ratioUp * Math.sin((cam_pitch - 90.0) * DEG2RAD) * Math.sin(cam_heading * DEG2RAD);
-        var camUpY = ratioUp * Math.cos((cam_pitch - 90.0) * DEG2RAD);
-        var camUpZ = ratioUp * Math.sin((cam_pitch - 90.0) * DEG2RAD) * Math.cos(cam_heading * DEG2RAD);
-        var camRightX = ratioRight * Math.sin((cam_heading - 90.0) * DEG2RAD);
-        var camRightY = 0.0;
-        var camRightZ = ratioRight * Math.cos((cam_heading - 90.0) * DEG2RAD);
-        var camPlaneOriginX = camDirX + 0.5 * camUpX - 0.5 * camRightX;
-        var camPlaneOriginY = camDirY + 0.5 * camUpY - 0.5 * camRightY;
-        var camPlaneOriginZ = camDirZ + 0.5 * camUpZ - 0.5 * camRightZ;
+        for (var j = 0; j < panoVidWidth; j++) {
 
-        //render image
-        var i, j;
-        // var perf_start = performance.now();
-        for (i = 0; i < dest_height; i++) {
-            for (j = 0; j < dest_width; j++) {
-                var fx = j / dest_width;
-                var fy = i / dest_height;
+            x = panoVidWidth * i + j;
 
-                var rayX = camPlaneOriginX + fx * camRightX - fy * camUpX;
-                var rayY = camPlaneOriginY + fx * camRightY - fy * camUpY;
-                var rayZ = camPlaneOriginZ + fx * camRightZ - fy * camUpZ;
-                var rayNorm = 1.0 / Math.sqrt(rayX * rayX + rayY * rayY + rayZ * rayZ);
+            srcArrPos = fisheyeSrcArr[ x ];
 
-                var theta = Math.acos(rayY * rayNorm);
-                var phi = Math.atan2(rayZ, rayX) + Math.PI;
-                var theta_i = Math.floor(theta_fac * theta);
-                var phi_i = Math.floor(phi_fac * phi);
+            destArrPos = 4 * (i * panoVidWidth + j);
 
-                var dest_offset = 4 * (i * dest_width + j);
-                var src_offset = 4 * (theta_i * src_width + phi_i);
-
-                dome_pixels[dest_offset] = equi_pixels[src_offset];
-                dome_pixels[dest_offset + 1] = equi_pixels[src_offset + 1];
-                dome_pixels[dest_offset + 2] = equi_pixels[src_offset + 2];
-                dome_pixels[dest_offset + 3] = equi_pixels[src_offset + 3];
-
-            }
+            panoPixelArr[ destArrPos ] = fisheyePixels[ srcArrPos ];
+            panoPixelArr[ destArrPos + 1 ] = fisheyePixels[ srcArrPos + 1 ];
+            panoPixelArr[ destArrPos + 2 ] = fisheyePixels[ srcArrPos + 2 ];
+            panoPixelArr[ destArrPos + 3 ] = fisheyePixels[ srcArrPos + 3 ];
         }
-        // var perf_end = performance.now();
-        // console.log("renderDome(): " + (perf_end - perf_start) + " ms");
-
-        //upload image data
-        dome_ctx.putImageData(dome_imgdata, 0, 0);
     }
 
-    window.requestAnimationFrame(renderDome);
-}
-
-/*----------------*/
-/* Initialization */
-/*----------------*/
-
-function init_env() {
-    //console.log("FUNCTION CALL: init_env()");
-
-    // init fisheye buffer canvas of dimensions equal to video feed.
-    fisheye_canvas = document.createElement('canvas');
-    fisheye_canvas.width = fisheye_canvas_width;
-    fisheye_canvas.height = fisheye_canvas_height;
-
-    // var start = performance.now();
-    fisheye_ctx = fisheye_canvas.getContext('2d');
-    // var end = performance.now();
-
-    // console.log("Video width: " + video_feed.videoWidth);
-    // console.log("Video height: " + video_feed.videoHeight);
-
-    // init equirectangular buffer canvas of 3888 * 1944 pixels
-    equi_canvas = document.createElement('canvas');
-    equi_canvas.width = equi_image_width;
-    equi_canvas.height = equi_image_height * 2;
-
-    equi_ctx = equi_canvas.getContext("2d");
-
-    equi_imgdata = equi_ctx.getImageData(0, 0, equi_canvas.width, equi_canvas.height);
-    equi_pixels = equi_imgdata.data;
-
-    // initializes arrays for pre-computation
-    precompute1d();
-
-    // get dome canvas
-    dome_canvas = document.getElementById('dome');
-    dome_canvas.onmousedown = mouseDown;
-
-    dome_ctx = dome_canvas.getContext("2d");
-    dome_imgdata = dome_ctx.getImageData(0, 0, dome_canvas.width, dome_canvas.height);
-    dome_pixels = dome_imgdata.data;
-
-    // set mouse controls
-    window.onmousemove = mouseMove;
-    window.onmouseup = mouseUp;
-    window.onmousewheel = mouseScroll;
-
-    dewarp();
-    renderDome();
-    // render();
+    dataTextureArr.set( panoPixelArr );
+    dataTexture.needsUpdate = true;
+    // var perf_end = performance.now();
+    // console.log('dewarp: ' + (perf_end - perf_start) + 'ms');
 }
 
 /**
  * Fills the pre-compute state arrays with fixed values
  * used for the dewarp algorithm.
  */
-function precompute1d() {
-    var radius, theta, para_true_x, para_true_y, x, y;
-    var dest_offset, src_offset;
+function precomputeSrcCoords () {
+    var radius, theta;
+    var paraTrueX, paraTrueY;
+    var x, y;
+    var srcArrPos;
 
-    for (var i = 0; i < equi_image_height; i++) {
+    // var perf_start = performance.now();
+    for ( var i = 0; i < panoVidHeight; i++ ) {
 
-        radius = (equi_image_height - i);
+        radius = ( panoVidHeight - i );
 
-        for (var j = 0; j < equi_image_width; j++) {
+        for ( var j = 0; j < panoVidWidth; j++ ) {
 
-            theta = 2 * Math.PI * -j / (4 * equi_image_height);
+            theta = 2 * Math.PI * -j / ( 4 * panoVidHeight );
 
             // find true (x, y) coordinates based on parametric
             // equation of circle.
-            para_true_x = radius * Math.cos(theta);
-            para_true_y = radius * Math.sin(theta);
+            paraTrueX = radius * Math.cos( theta );
+            paraTrueY = radius * Math.sin( theta );
 
             // scale true coordinates to integer-based coordinates
             // (1 pixel is of size 1 * 1)
-            x = Math.round(para_true_x) + equi_image_height;
-            y = equi_image_height - Math.round(para_true_y);
+            x = Math.round( paraTrueX ) + panoVidHeight;
+            y = panoVidHeight - Math.round( paraTrueY );
 
-            src_offset = 4 * (x * fisheye_image_width + y);
+            srcArrPos = 4 * ( x * fisheyeVidHeight + y );
 
             // Checks if the offset is greater than MAX_1D_ARRAY_VALUE.
             // This prevents the array from dynamically increasing in size to accomodate the value,
             // resulting in an increase in array lookup time.
-            if (src_offset > MAX_1D_ARRAY_SIZE) {
-                // console.log("size exceeded");
-                src_offset = MAX_1D_ARRAY_SIZE - 8;
+            if ( srcArrPos > MAX_1D_ARRAY_SIZE ) {
+                srcArrPos = MAX_1D_ARRAY_SIZE - 8;
             }
 
-            fisheye_data_1d_arr[i * equi_image_width + j] = src_offset;
+            fisheyeSrcArr[ i * panoVidWidth + j ] = srcArrPos;
         }
     }
+    // var perf_end = performance.now();
+
+    // console.log('precompute(): ' + (perf_end - perf_start) + 'ms');
 }
 
-//--------------//
-// Mouse Events //
-//--------------//
 
-function mouseDown(e) {
-    mouseIsDown = true;
-    mouseDownPosLastX = e.clientX;
-    mouseDownPosLastY = e.clientY;
+/*----------------*/
+/* Initialization */
+/*----------------*/
+
+function initEnv ( vidWidth, vidHeight ) {
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight,
+        0.1, 1000 );
+    camera.position.z = 400;
+
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize( vidWidth, vidHeight );
+    document.body.appendChild( renderer.domElement );
 }
 
-function mouseMove(e) {
-    if (mouseIsDown == true) {
-        cam_heading -= (e.clientX - mouseDownPosLastX);
-        cam_pitch += 0.5 * (e.clientY - mouseDownPosLastY);
-        cam_pitch = Math.min(45, Math.max(0, cam_pitch));
-        mouseDownPosLastX = e.clientX;
-        mouseDownPosLastY = e.clientY;
-    }
+function initOffScrnCanvas () {
+    fisheyeCanvas = document.createElement( 'canvas' );
+    fisheyeCanvas.width = fisheyeVidHeight;
+    fisheyeCanvas.height = fisheyeVidHeight;
+
+    fisheyeCtx = fisheyeCanvas.getContext( '2d' );
 }
 
-function mouseUp(e) {
-    mouseIsDown = false;
+function recordFisheyeDimensions ( videoFeed ) {
+    fisheyeVidWidth = videoFeed.videoWidth;
+    fisheyeVidHeight = videoFeed.videoHeight;
+    fisheyeVidXOrigin = ( fisheyeVidWidth - fisheyeVidHeight ) / 2;
+    MAX_1D_ARRAY_SIZE = 4 * fisheyeVidHeight * fisheyeVidHeight;
+    fisheyeSrcArr = new Array( fisheyeVidHeight * fisheyeVidHeight );
 }
 
-function mouseScroll(e) {
-    cam_fov += e.wheelDelta / 120;
-    cam_fov = Math.min(90, Math.max(30, cam_fov));
+function setPanoDimensions () {
+    panoVidWidth = fisheyeVidHeight * 2;
+    panoVidHeight = fisheyeVidHeight / 2;
+    panoPixelArr = new Uint8ClampedArray( 4 * panoVidWidth * panoVidHeight );
+
+}
+
+function initControls () {
+    controls = new THREE.OrbitControls( camera );
+    controls.enableKeys = true;
+    controls.disablePan = true;
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.25;
+    controls.enableZoom = false;
+}
+
+/*-----------*/
+/* Rendering */
+/*-----------*/
+
+function render () {
+    readFisheyeImg();
+    dewarp();
+
+    renderer.render( scene, camera );
+}
+
+function animate () {
+    requestAnimationFrame( animate );
+    controls.update();
+    render();
 }
 
 //-------------//
@@ -352,9 +223,15 @@ function mouseScroll(e) {
 //-------------//
 
 // grab video feed
-video_feed = document.getElementById("videoElement");
+videoFeed = document.getElementById('videoElement');
 
 // only obtain video feed dimensions after feed has fully loaded.
-video_feed.addEventListener( "loadedmetadata", function (e) {
-    init_env();
+videoFeed.addEventListener( 'loadedmetadata', function () {
+    recordFisheyeDimensions( videoFeed );
+    setPanoDimensions();
+    precomputeSrcCoords();
+    initEnv( window.innerWidth, window.innerHeight );
+    initOffScrnCanvas();
+    initControls();
+    buildScene();
 }, false );
