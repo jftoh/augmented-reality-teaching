@@ -1,10 +1,6 @@
 // fisheye.js
 // author: Toh Jian Feng
 
-/*-----------*/
-/* Constants */
-/*-----------*/
-
 // Original fisheye image dimensions according to USB webcam.
 var fisheyeVidWidth, fisheyeVidHeight = null;
 
@@ -21,7 +17,7 @@ var videoFeed = null;
 /*----------------------*/
 
 function displayFeed () {
-    var screenGeometry = new THREE.CubeGeometry( fisheyeVidWidth, fisheyeVidHeight, 5);
+    var screenGeometry = new THREE.PlaneGeometry( fisheyeVidWidth, fisheyeVidHeight);
     var videoTexture = new THREE.VideoTexture( videoFeed );
     videoTexture.minFilter = THREE.LinearFilter;
     var screenMaterial = new THREE.MeshBasicMaterial( {
@@ -43,10 +39,6 @@ function buildScene () {
 /* Rendering */
 /*-----------*/
 
-/*----------------*/
-/* Initialization */
-/*----------------*/
-
 function render() {
     renderer.render(scene, camera);
 }
@@ -56,17 +48,19 @@ function animate() {
     render();
 }
 
+/*----------------*/
+/* Initialization */
+/*----------------*/
+
 function initEnv ( fisheyeVidWidth, fisheyeVidHeight ) {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, fisheyeVidWidth / fisheyeVidHeight,
         0.1, 4000 );
-    camera.position.z = 1500;
+    camera.position.z = 972;
 
     renderer = new THREE.WebGLRenderer();
-    renderer.setSize(fisheyeVidWidth, fisheyeVidHeight);
-    document.body.appendChild(renderer.domElement);
-
-    // window.addEventListener( 'resize', onWindowResize, false );
+    renderer.setSize( fisheyeVidWidth, fisheyeVidHeight );
+    document.body.appendChild( renderer.domElement );
 }
 
 function recordFisheyeDimensions ( videoFeed ) {
