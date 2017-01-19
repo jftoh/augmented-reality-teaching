@@ -1,4 +1,4 @@
-// pano.js 
+// fisheye.js
 // author: Toh Jian Feng
 
 /*-----------*/
@@ -6,64 +6,72 @@
 /*-----------*/
 
 // Original fisheye image dimensions according to USB webcam.
-const fisheye_image_width = 1944;
-const fisheye_image_height = 1944;
+var fisheyeVidWidth, fisheyeVidHeight = null;
 
-const fisheye_canvas_width = 1944;
-const fisheye_canvas_height = 1944;
-
-const fisheye_image_x_origin = (2592 - 1944) / 2;
-
-
-/*----------------------*/
-/* Buffers and Canvases */
-/*----------------------*/
-
-var fisheye_canvas = null;
-
-var fisheye_pixels = null;
-
-var fisheye_ctx = null;
+var scene, camera, renderer = null;
 
 /*------------*/
 /* Video Feed */
 /*------------*/
 
-var video_feed = null;
+var videoFeed = null;
 
 /*----------------------*/
 /* Capturing Video Feed */
 /*----------------------*/
 
-function getFisheyeImgData() {
-    if (fisheye_canvas != null && video_feed != null) {
-        // Original video feed dimensions are at 2592 X 1944 pixels.
-        // We only require the fisheye image of dimensions 1944 X 1944 pixels
-         
-        // var start = performance.now();
-        fisheye_ctx.drawImage(video_feed, fisheye_image_x_origin, 0, fisheye_image_width, fisheye_image_height, 0, 0, fisheye_image_width, fisheye_image_height);
-        // var end = performance.now();
+function displayFeed () {
+    var screenGeometry = new THREE.CubeGeometry( fisheyeVidWidth, fisheyeVidHeight, 5);
+    var videoTexture = new THREE.VideoTexture( videoFeed );
+    videoTexture.minFilter = THREE.LinearFilter;
+    var screenMaterial = new THREE.MeshBasicMaterial( {
+        map: videoTexture
+    } );
 
-        // console.log("drawImage(): " + (end - start) + "ms");
-        window.requestAnimationFrame(getFisheyeImgData); 
-    }
+    var screen = new THREE.Mesh( screenGeometry, screenMaterial );
+    scene.add( screen );
 }
+
+function buildScene () {
+    scene.add( camera );
+
+    displayFeed();
+    animate();
+}
+
+/*-----------*/
+/* Rendering */
+/*-----------*/
 
 /*----------------*/
 /* Initialization */
 /*----------------*/
 
-function init_env() {
-    //console.log("FUNCTION CALL: init_env()");
+function render() {
+    renderer.render(scene, camera);
+}
 
-    // init fisheye buffer canvas of dimensions equal to video feed.
-    fisheye_canvas = document.getElementById('fisheye');
-    fisheye_canvas.width = fisheye_canvas_width;
-    fisheye_canvas.height = fisheye_canvas_height;
+function animate() {
+    requestAnimationFrame(animate);
+    render();
+}
 
-    fisheye_ctx = fisheye_canvas.getContext("2d");
+function initEnv ( fisheyeVidWidth, fisheyeVidHeight ) {
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera( 75, fisheyeVidWidth / fisheyeVidHeight,
+        0.1, 4000 );
+    camera.position.z = 1500;
 
-    window.requestAnimationFrame(getFisheyeImgData); 
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize(fisheyeVidWidth, fisheyeVidHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // window.addEventListener( 'resize', onWindowResize, false );
+}
+
+function recordFisheyeDimensions ( videoFeed ) {
+    fisheyeVidWidth = videoFeed.videoWidth;
+    fisheyeVidHeight = videoFeed.videoHeight;
 }
 
 //-------------//
@@ -71,9 +79,11 @@ function init_env() {
 //-------------//
 
 // grab video feed
-video_feed = document.getElementById("videoElement");
+videoFeed = document.getElementById('videoElement');
 
 // only obtain video feed dimensions after feed has fully loaded.
-video_feed.addEventListener( "loadedmetadata", function (e) {
-    init_env();
+videoFeed.addEventListener( 'loadedmetadata', function () {
+    recordFisheyeDimensions( videoFeed );
+    initEnv( fisheyeVidWidth, fisheyeVidHeight );
+    buildScene();
 }, false );
