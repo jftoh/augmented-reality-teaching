@@ -55,11 +55,10 @@ function displayFeed () {
     var screenGeometry = new THREE.PlaneGeometry( panoVidWidth, panoVidHeight );
     dataTextureArr = new Uint8Array( panoPixelArr );
 
-    dataTexture = new THREE.DataTexture( dataTextureArr, panoVidWidth, panoVidHeight, THREE.RGBAFormat );
+    dataTexture = new THREE.DataTexture( dataTextureArr, panoVidWidth, panoVidHeight * 2, THREE.RGBAFormat );
 
     dataTexture.minFilter = THREE.LinearFilter;
-    dataTexture.magFilter = THREE.LinearFilter;
-    dataTexture.generateMipmaps = false;
+    dataTexture.magFilter = THREE.NearestFilter;
 
     var screenMaterial = new THREE.MeshBasicMaterial( {
         map: dataTexture
@@ -92,7 +91,7 @@ function dewarp () {
 
             srcArrPos = fisheyeSrcArr[ x ];
 
-            destArrPos = 4 * (i * panoVidWidth + j);
+            destArrPos = 4 * ( i * panoVidWidth + j );
 
             panoPixelArr[ destArrPos ] = fisheyePixels[ srcArrPos ];
             panoPixelArr[ destArrPos + 1 ] = fisheyePixels[ srcArrPos + 1 ];
@@ -188,8 +187,23 @@ function recordFisheyeDimensions ( videoFeed ) {
 function setPanoDimensions () {
     panoVidWidth = fisheyeVidHeight * 2;
     panoVidHeight = fisheyeVidHeight / 2;
-    panoPixelArr = new Uint8ClampedArray( 4 * panoVidWidth * panoVidHeight );
+}
 
+
+function initPanoPixelArr () {
+    var arrPos;
+
+    panoPixelArr = new Uint8ClampedArray( 4 * panoVidWidth * panoVidHeight * 2 );
+
+    for ( var i = 0; i < fisheyeVidHeight; i++ ) {
+        for ( var j = 0; j < panoVidWidth; j++ ) {
+            arrPos = 4 * ( i * panoVidWidth + j );
+            panoPixelArr[ arrPos ] = 0;
+            panoPixelArr[ arrPos + 1 ] = 0;
+            panoPixelArr[ arrPos + 2 ] = 0;
+            panoPixelArr[ arrPos + 3] = 0;
+        }
+   }
 }
 
 /*-----------*/
@@ -219,6 +233,7 @@ videoFeed = document.getElementById('videoElement');
 videoFeed.addEventListener( 'loadedmetadata', function () {
     recordFisheyeDimensions( videoFeed );
     setPanoDimensions();
+    initPanoPixelArr();
     precomputeSrcCoords();
     initEnv( panoVidWidth, panoVidHeight );
     initOffScrnCanvas();

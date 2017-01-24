@@ -15,6 +15,7 @@ var fisheyeVidXOrigin = null;
 var panoVidWidth, panoVidHeight = null;
 var scene, camera, renderer = null;
 var controls = null;
+var sphereGeometry, sphereMaterial, sphere;
 
 /*------------*/
 /* Video Feed */
@@ -52,21 +53,24 @@ function readFisheyeImg () {
 }
 
 function displayFeed () {
-    var sphereGeometry = new THREE.SphereGeometry( 972, 64, 64 );
+    sphereGeometry = new THREE.SphereGeometry( window.innerHeight, 64, 64 );
     dataTextureArr = new Uint8Array( panoPixelArr );
 
-    dataTexture = new THREE.DataTexture( dataTextureArr, panoVidWidth, panoVidHeight, THREE.RGBAFormat );
+    dataTexture = new THREE.DataTexture( dataTextureArr, panoVidWidth, panoVidHeight * 2, THREE.RGBAFormat );
 
     dataTexture.minFilter = THREE.LinearFilter;
-    dataTexture.magFilter = THREE.LinearFilter;
+    dataTexture.magFilter = THREE.NearestFilter;
     dataTexture.generateMipmaps = false;
+    dataTexture.flipY = true;
 
-    var sphereMaterial = new THREE.MeshBasicMaterial( {
-        map: dataTexture
+    sphereMaterial = new THREE.MeshBasicMaterial( {
+        map: dataTexture,
+        side: THREE.BackSide
     } );
 
-    var screen = new THREE.Mesh( sphereGeometry, sphereMaterial );
-    scene.add( screen );
+    sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
+
+    scene.add( sphere );
 }
 
 function buildScene () {
@@ -88,11 +92,11 @@ function dewarp () {
 
         for (var j = 0; j < panoVidWidth; j++) {
 
-            x = panoVidWidth * i + j;
+            x = i * panoVidWidth + j;
 
             srcArrPos = fisheyeSrcArr[ x ];
 
-            destArrPos = 4 * (i * panoVidWidth + j);
+            destArrPos = 4 * Math.abs(((panoVidHeight - 1 - i) * panoVidWidth - (panoVidWidth - 1 - j)));
 
             panoPixelArr[ destArrPos ] = fisheyePixels[ srcArrPos ];
             panoPixelArr[ destArrPos + 1 ] = fisheyePixels[ srcArrPos + 1 ];
@@ -160,9 +164,9 @@ function precomputeSrcCoords () {
 
 function initEnv ( vidWidth, vidHeight ) {
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight,
+    camera = new THREE.PerspectiveCamera( 75, vidWidth / vidHeight,
         0.1, 1000 );
-    camera.position.z = 400;
+    camera.position.z = 5;
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( vidWidth, vidHeight );
@@ -188,8 +192,22 @@ function recordFisheyeDimensions ( videoFeed ) {
 function setPanoDimensions () {
     panoVidWidth = fisheyeVidHeight * 2;
     panoVidHeight = fisheyeVidHeight / 2;
-    panoPixelArr = new Uint8ClampedArray( 4 * panoVidWidth * panoVidHeight );
+}
 
+function initPanoPixelArr () {
+    var arrPos;
+
+    panoPixelArr = new Uint8ClampedArray( 4 * panoVidWidth * panoVidHeight * 2 );
+
+    for ( var i = 0; i < fisheyeVidHeight; i++ ) {
+        for ( var j = 0; j < panoVidWidth; j++ ) {
+            arrPos = 4 * ( i * panoVidWidth + j );
+            panoPixelArr[ arrPos ] = 0;
+            panoPixelArr[ arrPos + 1 ] = 0;
+            panoPixelArr[ arrPos + 2 ] = 0;
+            panoPixelArr[ arrPos + 3] = 0;
+        }
+    }
 }
 
 function initControls () {
@@ -223,12 +241,13 @@ function animate () {
 //-------------//
 
 // grab video feed
-videoFeed = document.getElementById('videoElement');
+videoFeed = document.getElementById( 'videoElement' );
 
 // only obtain video feed dimensions after feed has fully loaded.
 videoFeed.addEventListener( 'loadedmetadata', function () {
     recordFisheyeDimensions( videoFeed );
     setPanoDimensions();
+    initPanoPixelArr();
     precomputeSrcCoords();
     initEnv( window.innerWidth, window.innerHeight );
     initOffScrnCanvas();
