@@ -16,6 +16,7 @@ var panoVidWidth, panoVidHeight = null;
 var scene, camera, renderer = null;
 var controls = null;
 var sphereGeometry, sphereMaterial, sphere;
+var filemanager;
 
 /*------------*/
 /* Video Feed */
@@ -171,6 +172,8 @@ function initEnv ( vidWidth, vidHeight ) {
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( vidWidth, vidHeight );
     document.body.appendChild( renderer.domElement );
+
+    window.addEventListener( 'resize', onWindowResize, false );
 }
 
 function initOffScrnCanvas () {
@@ -219,9 +222,43 @@ function initControls () {
     controls.enableZoom = false;
 }
 
+function initFileManager () {
+    loadFile( 'config/testconfig.json', renderObjects, xmlRequestError );
+}
+
 /*-----------*/
 /* Rendering */
 /*-----------*/
+
+function xmlRequestError ( xhr ) {
+    console.error( xhr );
+}
+
+function renderObjects ( jsonObj ) {
+    var objects = jsonObj[ 'objects' ];
+    console.log(objects);
+    var currObject;
+
+    for ( var i = 0; i < Object.keys(objects).length; i++ ) {
+        currObject = objects[ i ];
+        console.log(currObject);
+        var dimensions = currObject[ 'dimensions' ];
+        var location = currObject[ 'location' ];
+
+        var geometry = new THREE.CubeGeometry( dimensions[ 'length' ],
+                                               dimensions[ 'width' ],
+                                               dimensions[ 'height' ] );
+
+        var material = new THREE.MeshBasicMaterial( { color: 0x000000 } );
+
+        var mesh = new THREE.Mesh( geometry, material );
+
+        mesh.position.set( location[ 0 ], location[ 1 ], location[ 2 ] );
+
+        console.log ('placing object at position [ ' + location[0] + ', ' + location[1] + ', ' + location[2] + ']');
+        scene.add( mesh );
+    }
+}
 
 function render () {
     readFisheyeImg();
@@ -234,6 +271,34 @@ function animate () {
     requestAnimationFrame( animate );
     controls.update();
     render();
+}
+
+function onWindowResize () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+}
+
+function loadFile ( fileName, success, error ) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+        if ( xhr.readyState === XMLHttpRequest.DONE ) {
+            if (xhr.status === 200 ) {
+                if ( success ) {
+                    success ( xhr.response  );
+                }
+            } else {
+                if ( error ) {
+                    error ( xhr.response );
+                }
+            }
+        }
+    };
+
+    xhr.open( 'GET', fileName, true );
+    xhr.responseType = 'json';
+    xhr.send();
 }
 
 //-------------//
@@ -253,4 +318,5 @@ videoFeed.addEventListener( 'loadedmetadata', function () {
     initOffScrnCanvas();
     initControls();
     buildScene();
+    initFileManager();
 }, false );

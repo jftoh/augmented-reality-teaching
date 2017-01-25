@@ -1,0 +1,41 @@
+{
+	"location": "office",
+
+	"objects": [
+		{
+			"type": "cube",
+
+			"dimensions": {
+				"length": 2,
+				"width": 2,
+				"height": 2
+			},
+
+			"location": [ 50, 50, 23 ]
+		},
+
+		{
+			"type": "cube",
+
+			"dimensions": {
+				"length": 2,
+				"width": 2,
+				"height": 2
+			},
+
+			"location": [ 35, 15, 10 ]
+		},
+
+		{
+			"type": "cube",
+
+			"dimensions": {
+				"length": 2,
+				"width": 2,
+				"height": 2
+			},
+
+			"location": [ 25, 25, 10 ]
+		}
+	]
+}
