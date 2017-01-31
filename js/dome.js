@@ -1,9 +1,9 @@
 // dome.js
 // author: Toh Jian Feng
 
-/*----------------------*/
-/* Buffers and Canvases */
-/*----------------------*/
+/*-------------------------------*/
+/* Fisheye Video Feed Attributes */
+/*-------------------------------*/
 
 var fisheyeCanvas = null;
 var fisheyeCtx = null;
@@ -16,7 +16,8 @@ var panoVidWidth, panoVidHeight = null;
 var scene, camera, renderer = null;
 var controls = null;
 var sphereGeometry, sphereMaterial, sphere;
-var filemanager;
+
+var objManager, fileLoader;
 
 /*------------*/
 /* Video Feed */
@@ -63,6 +64,7 @@ function displayFeed () {
     dataTexture.magFilter = THREE.NearestFilter;
     dataTexture.generateMipmaps = false;
     dataTexture.flipY = true;
+    dataTexture.flipX = true;
 
     sphereMaterial = new THREE.MeshBasicMaterial( {
         map: dataTexture,
@@ -222,43 +224,28 @@ function initControls () {
     controls.enableZoom = false;
 }
 
-function initFileManager () {
-    loadFile( 'config/testconfig.json', renderObjects, xmlRequestError );
+/*--------------*/
+/* File Loading */
+/*--------------*/
+
+function loadFile() {
+    fileLoader = new Worker( 'js/file/fileloader.js' );
+    fileLoader.postMessage( '../../config/testconfig.json' );
+
+    fileLoader.onmessage = function ( e ) {
+        var jsonObj = e.data;
+
+        objManager = new ART.ObjectManager();
+        objManager.init( scene, jsonObj );
+        objManager.loadObjects();
+    };
 }
+
+
 
 /*-----------*/
 /* Rendering */
 /*-----------*/
-
-function xmlRequestError ( xhr ) {
-    console.error( xhr );
-}
-
-function renderObjects ( jsonObj ) {
-    var objects = jsonObj[ 'objects' ];
-    console.log(objects);
-    var currObject;
-
-    for ( var i = 0; i < Object.keys(objects).length; i++ ) {
-        currObject = objects[ i ];
-        console.log(currObject);
-        var dimensions = currObject[ 'dimensions' ];
-        var location = currObject[ 'location' ];
-
-        var geometry = new THREE.CubeGeometry( dimensions[ 'length' ],
-                                               dimensions[ 'width' ],
-                                               dimensions[ 'height' ] );
-
-        var material = new THREE.MeshBasicMaterial( { color: 0x000000 } );
-
-        var mesh = new THREE.Mesh( geometry, material );
-
-        mesh.position.set( location[ 0 ], location[ 1 ], location[ 2 ] );
-
-        console.log ('placing object at position [ ' + location[0] + ', ' + location[1] + ', ' + location[2] + ']');
-        scene.add( mesh );
-    }
-}
 
 function render () {
     readFisheyeImg();
@@ -280,27 +267,6 @@ function onWindowResize () {
     renderer.setSize( window.innerWidth, window.innerHeight );
 }
 
-function loadFile ( fileName, success, error ) {
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
-        if ( xhr.readyState === XMLHttpRequest.DONE ) {
-            if (xhr.status === 200 ) {
-                if ( success ) {
-                    success ( xhr.response  );
-                }
-            } else {
-                if ( error ) {
-                    error ( xhr.response );
-                }
-            }
-        }
-    };
-
-    xhr.open( 'GET', fileName, true );
-    xhr.responseType = 'json';
-    xhr.send();
-}
-
 //-------------//
 // Main Script //
 //-------------//
@@ -316,7 +282,8 @@ videoFeed.addEventListener( 'loadedmetadata', function () {
     precomputeSrcCoords();
     initEnv( window.innerWidth, window.innerHeight );
     initOffScrnCanvas();
+    loadFile();
     initControls();
     buildScene();
-    initFileManager();
+
 }, false );
