@@ -99,7 +99,7 @@ function dewarp () {
 
             srcArrPos = fisheyeSrcArr[ x ];
 
-            destArrPos = 4 * Math.abs(((panoVidHeight - 1 - i) * panoVidWidth - (panoVidWidth - 1 - j)));
+            destArrPos = 4 * Math.abs( ( panoVidHeight - 1 - i ) * panoVidWidth - j );
 
             panoPixelArr[ destArrPos ] = fisheyePixels[ srcArrPos ];
             panoPixelArr[ destArrPos + 1 ] = fisheyePixels[ srcArrPos + 1 ];
