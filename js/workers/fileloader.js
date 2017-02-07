@@ -20,13 +20,3 @@ self.onmessage = function ( e ) {
     xhr.responseType = 'json';
     xhr.send();
 };
-
-
-/**
-* [xmlRequestError description]
-* @param  {[type]} xhr [description]
-* @return {[type]}     [description]
-*/
-function logXmlRequestError ( xhr ) {
-    console.error( xhr );
-}

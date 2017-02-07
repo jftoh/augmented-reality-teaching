@@ -229,7 +229,7 @@ function initControls () {
 /*--------------*/
 
 function loadFile() {
-    fileLoader = new Worker( 'js/file/fileloader.js' );
+    fileLoader = new Worker( 'js/workers/fileloader.js' );
     fileLoader.postMessage( '../../config/testconfig.json' );
 
     fileLoader.onmessage = function ( e ) {

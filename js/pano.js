@@ -1,41 +1,41 @@
 // pano.js
 // author: Toh Jian Feng
 
+var precomputeWorker;
+
 /*----------------------*/
 /* Buffers and Canvases */
 /*----------------------*/
 
-var fisheyeCanvas = null;
-var fisheyeCtx = null;
-var fisheyePixels = null;
-
+var fisheyeCanvas, fisheyeCtx, fisheyePixels;
 
 // Original fisheye image dimensions according to USB webcam.
-var fisheyeVidWidth, fisheyeVidHeight = null;
-var fisheyeVidXOrigin = null;
-var panoVidWidth, panoVidHeight = null;
-var scene, camera, renderer = null;
+var fisheyeVidWidth, fisheyeVidHeight;
+var fisheyeVidXOrigin;
+var panoVidWidth, panoVidHeight;
+
+// three.js scene components
+var scene, camera, renderer;
+
+// three
 
 /*------------*/
 /* Video Feed */
 /*------------*/
 
-var videoFeed = null;
+var videoFeed;
 
 /*---------------------*/
 /* Pre-Computed States */
 /*---------------------*/
 
-var MAX_1D_ARRAY_SIZE = null;
-var fisheyeSrcArr = null;
-var panoPixelArr = null;
-var dataTextureArr = null;
+var fisheyeSrcArr, panoPixelArr, dataTextureArr;
 
 /*---------------*/
 /* Data Textures */
 /*---------------*/
 
-var dataTexture = null;
+var dataTexture;
 
 /*----------------------*/
 /* Capturing Video Feed */
@@ -82,7 +82,7 @@ function buildScene() {
 function dewarp() {
     var x, srcArrPos, destArrPos;
 
-    // var perf_start = performance.now();
+    var perf_start = performance.now();
     for (var i = 0; i < panoVidHeight; i++) {
 
         for (var j = 0; j < panoVidWidth; j++) {
@@ -102,56 +102,9 @@ function dewarp() {
 
     dataTextureArr.set(panoPixelArr);
     dataTexture.needsUpdate = true;
-    // var perf_end = performance.now();
-    // console.log('dewarp: ' + (perf_end - perf_start) + 'ms');
+    var perf_end = performance.now();
+    console.log('dewarp: ' + (perf_end - perf_start) + 'ms');
 }
-
-/**
- * Fills the pre-compute state arrays with fixed values
- * used for the dewarp algorithm.
- */
-function precomputeSrcCoords() {
-    var radius, theta;
-    var paraTrueX, paraTrueY;
-    var x, y;
-    var srcArrPos;
-
-    // var perf_start = performance.now();
-    for (var i = 0; i < panoVidHeight; i++) {
-
-        radius = (panoVidHeight - i);
-
-        for (var j = 0; j < panoVidWidth; j++) {
-
-            theta = 2 * Math.PI * -j / (4 * panoVidHeight);
-
-            // find true (x, y) coordinates based on parametric
-            // equation of circle.
-            paraTrueX = radius * Math.cos(theta);
-            paraTrueY = radius * Math.sin(theta);
-
-            // scale true coordinates to integer-based coordinates
-            // (1 pixel is of size 1 * 1)
-            x = Math.round(paraTrueX) + panoVidHeight;
-            y = panoVidHeight - Math.round(paraTrueY);
-
-            srcArrPos = 4 * (x * fisheyeVidHeight + y);
-
-            // Checks if the offset is greater than MAX_1D_ARRAY_VALUE.
-            // This prevents the array from dynamically increasing in size to accomodate the value,
-            // resulting in an increase in array lookup time.
-            if (srcArrPos > MAX_1D_ARRAY_SIZE) {
-                srcArrPos = MAX_1D_ARRAY_SIZE - 8;
-            }
-
-            fisheyeSrcArr[i * panoVidWidth + j] = srcArrPos;
-        }
-    }
-    // var perf_end = performance.now();
-
-    // console.log('precompute(): ' + (perf_end - perf_start) + 'ms');
-}
-
 
 /*----------------*/
 /* Initialization */
@@ -180,8 +133,6 @@ function recordFisheyeDimensions(videoFeed) {
     fisheyeVidWidth = videoFeed.videoWidth;
     fisheyeVidHeight = videoFeed.videoHeight;
     fisheyeVidXOrigin = (fisheyeVidWidth - fisheyeVidHeight) / 2;
-    MAX_1D_ARRAY_SIZE = 4 * fisheyeVidHeight * fisheyeVidHeight;
-    fisheyeSrcArr = new Array(fisheyeVidHeight * fisheyeVidHeight);
 }
 
 function setPanoDimensions() {
@@ -233,9 +184,14 @@ videoFeed = document.querySelector('video');
 videoFeed.addEventListener('loadedmetadata', function() {
     recordFisheyeDimensions(videoFeed);
     setPanoDimensions();
-    initPanoPixelArr();
-    precomputeSrcCoords();
-    initEnv(panoVidWidth, panoVidHeight);
-    initOffScrnCanvas();
-    buildScene();
+    precomputeWorker = new Worker( 'js/workers/precompute.js' );
+    precomputeWorker.postMessage( fisheyeVidHeight );
+    precomputeWorker.onmessage = function ( e ) {
+        fisheyeSrcArr = e.data;
+        initPanoPixelArr();
+        initEnv(panoVidWidth, panoVidHeight);
+        initOffScrnCanvas();
+        buildScene();
+    };
+
 }, false);
