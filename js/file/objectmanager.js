@@ -9,23 +9,21 @@ ObjectManager = function () {};
 ObjectManager.prototype = {
     init: function ( scene, jsonObj ) {
         this._scene = scene;
-        this._jsonObj = jsonObj;
+        this._objects = jsonObj.objects;
+        this._numObjects = Object.keys(this._objects).length;
+        this._objArr = [];
     },
 
     loadObjects: function () {
-        console.log( 'function call: loadObjects()' );
-        var objects = this._jsonObj.objects;
-        var numObjects = Object.keys( objects ).length;
-
         var currObject, objectType;
 
-        for ( var i = 0; i < numObjects; i++ ) {
-            currObject = objects[ i ];
+        for ( var i = 0; i < this._numObjects; i++ ) {
+            currObject = this._objects[ i ];
             objectType = currObject.type;
 
             switch ( objectType ) {
                 case 'cube':
-                    renderCube( currObject, this._scene );
+                    renderCube( currObject, this._scene, this._objArr );
                     break;
                 case 'sphere':
                     break;
@@ -38,8 +36,9 @@ ObjectManager.prototype = {
     constructor: ObjectManager
 };
 
-function renderCube ( cubeObject, scene ) {
-    console.log( 'function call: renderCube' );
+function renderCube ( cubeObject, scene, objArr ) {
+    var objectParent = new THREE.Object3D();
+    // console.log( 'function call: renderCube' );
     var dimensions = cubeObject.dimensions;
     var position = cubeObject.position;
 
@@ -48,6 +47,13 @@ function renderCube ( cubeObject, scene ) {
                                                dimensions.height );
     var cubeMaterial = new THREE.MeshBasicMaterial( { color: 0x000000 } );
     var cubeMesh = new THREE.Mesh( cubeGeometry, cubeMaterial );
-    cubeMesh.position.set( position[ 0 ], position[ 1 ], position[ 2 ] );
-    scene.add( cubeMesh );
+
+    var sphereGeometry = new THREE.SphereGeometry( 15, 32, 32 );
+    var sphereMaterial = new THREE.MeshPhongMaterial( { color: 0x00ff00, opacity: 0.3, transparent: true } );
+    var sphereMesh = new THREE.Mesh( sphereGeometry, sphereMaterial );
+    objectParent.add( cubeMesh );
+    objectParent.add( sphereMesh );
+    objectParent.position.set( cubeObject.position[0], cubeObject.position[1], cubeObject.position[2] );
+    scene.add( objectParent );
+    objArr.push( objectParent );
 }

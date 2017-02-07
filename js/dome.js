@@ -40,6 +40,8 @@ var dataTextureArr = null;
 
 var dataTexture = null;
 
+var objArray;
+
 /*----------------------*/
 /* Capturing Video Feed */
 /*----------------------*/
@@ -176,6 +178,9 @@ function initEnv ( vidWidth, vidHeight ) {
     document.body.appendChild( renderer.domElement );
 
     window.addEventListener( 'resize', onWindowResize, false );
+
+    var light = new THREE.AmbientLight (0x404040);
+    scene.add(light);
 }
 
 function initOffScrnCanvas () {
@@ -238,6 +243,7 @@ function loadFile() {
         objManager = new ObjectManager();
         objManager.init( scene, jsonObj );
         objManager.loadObjects();
+        objArray = objManager._objArr;
     };
 }
 
@@ -250,6 +256,18 @@ function loadFile() {
 function render () {
     readFisheyeImg();
     dewarp();
+
+    for ( let i = 0; i < objArray.length; i++ ) {
+        let currObj = objArray[i].children[1];
+        currObj.scale.x += 0.05;
+        currObj.scale.y += 0.05;
+        currObj.scale.z += 0.05;
+
+        if (currObj.scale.x >= 2) {
+            currObj.scale.set(1.0, 1.0, 1.0);
+        }
+
+    }
 
     renderer.render( scene, camera );
 }
