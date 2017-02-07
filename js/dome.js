@@ -235,7 +235,7 @@ function loadFile() {
     fileLoader.onmessage = function ( e ) {
         var jsonObj = e.data;
 
-        objManager = new ART.ObjectManager();
+        objManager = new ObjectManager();
         objManager.init( scene, jsonObj );
         objManager.loadObjects();
     };
@@ -272,7 +272,7 @@ function onWindowResize () {
 //-------------//
 
 // grab video feed
-videoFeed = document.getElementById( 'videoElement' );
+videoFeed = document.querySelector( 'video' );
 
 // only obtain video feed dimensions after feed has fully loaded.
 videoFeed.addEventListener( 'loadedmetadata', function () {

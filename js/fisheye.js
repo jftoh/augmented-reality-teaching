@@ -16,20 +16,20 @@ var videoFeed = null;
 /* Capturing Video Feed */
 /*----------------------*/
 
-function displayFeed () {
-    var screenGeometry = new THREE.PlaneGeometry( fisheyeVidWidth, fisheyeVidHeight);
-    var videoTexture = new THREE.VideoTexture( videoFeed );
+function displayFeed() {
+    var screenGeometry = new THREE.PlaneGeometry(fisheyeVidWidth, fisheyeVidHeight);
+    var videoTexture = new THREE.VideoTexture(videoFeed);
     videoTexture.minFilter = THREE.LinearFilter;
-    var screenMaterial = new THREE.MeshBasicMaterial( {
+    var screenMaterial = new THREE.MeshBasicMaterial({
         map: videoTexture
-    } );
+    });
 
-    var screen = new THREE.Mesh( screenGeometry, screenMaterial );
-    scene.add( screen );
+    var screen = new THREE.Mesh(screenGeometry, screenMaterial);
+    scene.add(screen);
 }
 
-function buildScene () {
-    scene.add( camera );
+function buildScene() {
+    scene.add(camera);
 
     displayFeed();
     animate();
@@ -52,18 +52,18 @@ function animate() {
 /* Initialization */
 /*----------------*/
 
-function initEnv ( fisheyeVidWidth, fisheyeVidHeight ) {
+function initEnv(fisheyeVidWidth, fisheyeVidHeight) {
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera( 75, fisheyeVidWidth / fisheyeVidHeight,
-        0.1, 4000 );
+    camera = new THREE.PerspectiveCamera(75, fisheyeVidWidth / fisheyeVidHeight,
+        0.1, 4000);
     camera.position.z = 972;
 
     renderer = new THREE.WebGLRenderer();
-    renderer.setSize( fisheyeVidWidth, fisheyeVidHeight );
-    document.body.appendChild( renderer.domElement );
+    renderer.setSize(fisheyeVidWidth, fisheyeVidHeight);
+    document.body.appendChild(renderer.domElement);
 }
 
-function recordFisheyeDimensions ( videoFeed ) {
+function recordFisheyeDimensions(videoFeed) {
     fisheyeVidWidth = videoFeed.videoWidth;
     fisheyeVidHeight = videoFeed.videoHeight;
 }
@@ -73,11 +73,11 @@ function recordFisheyeDimensions ( videoFeed ) {
 //-------------//
 
 // grab video feed
-videoFeed = document.getElementById('videoElement');
+videoFeed = document.querySelector('video');
 
 // only obtain video feed dimensions after feed has fully loaded.
-videoFeed.addEventListener( 'loadedmetadata', function () {
-    recordFisheyeDimensions( videoFeed );
-    initEnv( fisheyeVidWidth, fisheyeVidHeight );
+videoFeed.addEventListener('loadedmetadata', function() {
+    recordFisheyeDimensions(videoFeed);
+    initEnv(fisheyeVidWidth, fisheyeVidHeight);
     buildScene();
-}, false );
+}, false);

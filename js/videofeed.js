@@ -1,27 +1,21 @@
-var video = document.querySelector("#videoElement");
-
-// check for getUserMedia support
-navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.oGetUserMedia;
-
-var hdConstraints = {
+var vidConstraints = {
+    audio: false,
     video: {
-        mandatory: {
-            minWidth: 2592,
-            minHeight: 1944
-        }
+        width: { exact: 2592 },
+        height: { exact: 1944 }
     }
 };
 
-if (navigator.getUserMedia) {
-    // get webcam feed if available
-    navigator.getUserMedia(hdConstraints, handleVideo, videoError);
+navigator.mediaDevices.getUserMedia( vidConstraints ).then( handleMedia ).catch( mediaError );
+
+function mediaError ( err ) {
+    console.log( err.name + ': ' + err.message );
 }
 
-function handleVideo(stream) {
-    // if found attach feed to video element
-    video.src = window.URL.createObjectURL(stream);
-}
-
-function videoError(e) {
-    console.log("Error: Video element not found");
+function handleMedia ( mediaStream ) {
+    var video = document.querySelector( 'video' );
+    video.srcObject = mediaStream;
+    video.onloadedmetadata = function () {
+        video.play();
+    };
 }

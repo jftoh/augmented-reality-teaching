@@ -4,12 +4,9 @@
  * The ObjectManager class renders the corresponding 3D models
  * onto the scene using the response object obtained from an instance of FileLoader.
  */
+ObjectManager = function () {};
 
-var ART = ART || {};
-
-ART.ObjectManager = function () {};
-
-ART.ObjectManager.prototype = {
+ObjectManager.prototype = {
     init: function ( scene, jsonObj ) {
         this._scene = scene;
         this._jsonObj = jsonObj;
@@ -38,7 +35,7 @@ ART.ObjectManager.prototype = {
         }
     },
 
-    constructor: ART.ObjectManager
+    constructor: ObjectManager
 };
 
 function renderCube ( cubeObject, scene ) {
