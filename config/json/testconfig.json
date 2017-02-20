@@ -38,6 +38,11 @@
 			},
 
 			"position": [ 125, 125, 10 ]
+		},
+
+		{
+			"type": "custom",
+			"jsonpath": "../../config/arrowhead.js"
 		}
 	]
 }

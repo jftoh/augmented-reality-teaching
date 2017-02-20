@@ -12,6 +12,7 @@ ObjectManager.prototype = {
         this._objects = jsonObj.objects;
         this._numObjects = Object.keys(this._objects).length;
         this._objArr = [];
+        this._jsonLoader = new THREE.JSONLoader();
     },
 
     loadObjects: function () {
@@ -28,6 +29,7 @@ ObjectManager.prototype = {
                 case 'sphere':
                     break;
                 case 'custom':
+                    // renderCustom( currObject, this._scene, this._objArr );
                     break;
             }
         }
@@ -56,4 +58,13 @@ function renderCube ( cubeObject, scene, objArr ) {
     objectParent.position.set( cubeObject.position[0], cubeObject.position[1], cubeObject.position[2] );
     scene.add( objectParent );
     objArr.push( objectParent );
+}
+
+function renderCustom( customObject, scene, objArr ) {
+    var filePath = customObject.jsonpath;
+    this._jsonLoader.load( filePath, function ( geometry, materials ) {
+        var object = new THREE.Mesh( geometry, materials );
+        scene.add( object );
+        // objArr.push( object );
+    });
 }
