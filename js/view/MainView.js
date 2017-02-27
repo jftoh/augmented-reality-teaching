@@ -25,9 +25,9 @@ MainView.prototype.init = function () {
     // console.log( 'function call: init() ' );
 
     const scene = this.renderingCtx.scene;
-    const domeObj = this.domeViewMediator.domeObj;
+    const view = this.domeViewMediator.view;
 
-    scene.add( domeObj );
+    scene.add( view );
     window.addEventListener( 'resize', ( e ) => this.onWindowResize(), false );
     this.videofeed.onloadedmetadata = () => this.render();
 };
@@ -44,11 +44,12 @@ MainView.prototype.render = function () {
     requestAnimationFrame( () => this.render() );
     this.renderingCtx.controls.update();
     this.dewarpFrame();
+    this.domeViewMediator.onFrameRendered();
     this.renderingCtx.renderer.render( this.renderingCtx.scene, this.renderingCtx.camera );
 };
 
 MainView.prototype.onWindowResize = function () {
-    console.log( 'function call: onWindowResize() ' );
+    // console.log( 'function call: onWindowResize() ' );
     this.renderingCtx.camera.aspect = window.innerWidth / window.innerHeight;
     this.renderingCtx.camera.updateProjectionMatrix();
 

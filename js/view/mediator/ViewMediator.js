@@ -1,15 +1,35 @@
-var ViewMediator = function ( objectType, mediatorFactory ) {
-    this.objectType = objectType;
+/**
+ * ViewMediator.js
+ *
+ * Generic Mediator class between the EnvObject and its corresponding View.
+ */
+
+/**
+ * Constructor.
+ * @param {[EnvObject]} object          [model associated with this view]
+ * @param {[ViewMediatorFactory]} mediatorFactory [reference to the ViewMediatorFactory instance]
+ */
+var ViewMediator = function ( object, mediatorFactory ) {
+    this.object = object;
     this.mediatorFactory = mediatorFactory;
-    this.object3D = this.makeObject3D();
-    this.object3D.name = objectType.name;
+
+    // Three.js View
+    this.view = this.createView();
+    this.view.name = object.name;
+
+    // records all c
     this.childMediators = new Map();
-    this.object3D.traverse( ( object3D ) => {
-        object3D.mediator = this;
+
+    this.view.traverse( ( view ) => {
+        view.mediator = this;
     } );
 };
 
-ViewMediator.prototype.makeObject3D = function () {
+/**
+ * creates a view for the associated model.
+ * @return {[THREE.Object3D]} [view of the model]
+ */
+ViewMediator.prototype.createView = function () {
     const container = new THREE.Object3D();
 
     container.add( new THREE.Object3D() );
@@ -17,28 +37,48 @@ ViewMediator.prototype.makeObject3D = function () {
     return container;
 };
 
+/**
+ * Adds a view and its corresponding mediator to this view instance as a child.
+ * @param  {[THREE.Object3D]} child [ child view to be attached ]
+ */
 ViewMediator.prototype.addChild = function ( child ) {
     const mediator = this.mediatorFactory.getMediator( child );
 
     this.childMediators.set( child, mediator );
-    this.object3D.children[ 0 ].add( mediator.object3D );
+    this.view.children[ 0 ].add( mediator.view );
 
-    for ( const childOfChild of child ) {
-        mediator.addChild( childOfChild );
+    for ( let childOfChild in child.objects ) {
+        mediator.addChild( childofChild );
     }
 };
 
+/**
+ * Removes an existing child view from the parent view.
+ * @param  {[THREE.Object3D]} child [ child view attached to this view ]
+ */
 ViewMediator.prototype.removeChild = function ( child ) {
     const mediator = this.childMediators.get( child );
 
-    if (mediator) {
-        this.object3D.children[ 0 ].remove( mediator.object3D );
+    if ( mediator ) {
+        this.view.children[ 0 ].remove( mediator.view );
         this.childMediators.delete( child );
     }
 };
 
-ViewMediator.prototype.onFrameRenderered = function () {
+/**
+ * Render method for this view instance.
+ * Renders the view and all child views attached to it.
+ */
+ViewMediator.prototype.onFrameRendered = function () {
     for ( const childMediator of this.childMediators.values() ) {
-        childMediator.onFrameRenderered();
+        childMediator.onFrameRendered();
     }
+};
+
+ViewMediator.prototype.onObjectAdded = function ( e ) {
+    this.addChild( e.object );
+};
+
+ViewMediator.prototype.onEffectAdded = function ( e ) {
+    this.addChild( e.effect );
 };
