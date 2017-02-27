@@ -21,8 +21,8 @@ ViewMediatorFactory.prototype.getMediator = function ( object ) {
 			return new DomeViewMediator( object, this );
 		case 'Cube':
 			return new CubeViewMediator( object, this );
-		case 'Custom':
-			break;
+		case 'CustomModel':
+			return new CustomModelViewMediator( object, this );
 
 		// Effect Views
 		case 'RadiateEffect':

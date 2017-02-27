@@ -13,6 +13,10 @@ ObjectFactory.prototype.addObject = function ( objectName, objectType, propertie
 		switch ( objectType ) {
 			case 'Cube':
 				this.dome.addObject( new Cube( objectName, properties ) );
+				break;
+			case 'CustomModel':
+				this.dome.addObject( new CustomModel( objectName, properties ) );
+				break;
 		}
 	}
 };
@@ -26,6 +30,7 @@ ObjectFactory.prototype.addEffect = function( effectName, targetObjectName, effe
 		switch ( effectType ) {
 			case 'Radiate':
 				object.addEffect( new RadiateEffect( effectName, properties ) );
+				break;
 		}
 	}
 };
