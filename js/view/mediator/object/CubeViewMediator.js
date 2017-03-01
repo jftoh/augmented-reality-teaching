@@ -14,7 +14,7 @@ CubeViewMediator.prototype.createView = function () {
 	const container = new THREE.Object3D();
 	const mesh = new THREE.Mesh (
 		new THREE.BoxGeometry( length, length, length ),
-		new THREE.MeshBasicMaterial( { color: 0x00ff00 } )
+		new THREE.MeshBasicMaterial( { color: 0x000000 } )
 	);
 
 	mesh.position.set( objCoords[ 0 ], objCoords[ 1 ], objCoords[ 2 ] );

@@ -9,6 +9,7 @@ CustomModelViewMediator.constructor = CustomModelViewMediator;
 CustomModelViewMediator.prototype.createView = function () {
 	const container = new THREE.Object3D();
 	const configFilePath = this.object.properties.filepath;
+	const coords = this.object.properties.coordinates;
 
 	let fileLoader = new THREE.JSONLoader();
 	fileLoader.load(
@@ -27,6 +28,8 @@ CustomModelViewMediator.prototype.createView = function () {
 			console.log( error );
 		}
 	);
+
+	container.position.set( coords[ 0 ], coords[ 1 ], coords[ 2 ] );
 
 	return container;
 };

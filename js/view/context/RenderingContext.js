@@ -15,7 +15,7 @@ RenderingContext.getDefaultCtx = function ( ) {
     const camera = new THREE.PerspectiveCamera( fieldOfView, width / height, nearClippingPlane, farClippingPlane );
     const renderer = new THREE.WebGLRenderer();
     const controls = new THREE.OrbitControls( camera );
-    const light = new THREE.AmbientLight( 0x404040 );
+    const light = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.85 );
 
     camera.position.z = 5;
 

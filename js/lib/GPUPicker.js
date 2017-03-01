@@ -235,8 +235,8 @@ var THREE = THREE || {};
 		}
 		this.pickingScene = new THREE.Scene();
 		this.pickingTexture = new THREE.WebGLRenderTarget();
-		this.pickingTexture.minFilter = THREE.LinearFilter;
-		this.pickingTexture.generateMipmaps = false;
+		this.pickingTexture.texture.minFilter = THREE.LinearFilter;
+		this.pickingTexture.texture.generateMipmaps = false;
 		this.lineShell = option.lineShell !== undefined ? option.lineShell:4;
 		this.pointShell = option.pointShell !== undefined ? option.pointShell:0.1;
 		this.debug = option.debug !== undefined ? option.debug:false;
@@ -427,7 +427,7 @@ var THREE = THREE || {};
 				var attributes = __pickingGeometry.attributes;
 				var positions = attributes.position.array;
 				var vertexCount = positions.length/3;
-				var ids = new THREE.Float32Attribute(vertexCount, 1);
+				var ids = new THREE.Float32BufferAttribute(vertexCount, 1);
 				//set vertex id color
 
 				for (var i = 0, il = vertexCount/units; i < il; i++) {

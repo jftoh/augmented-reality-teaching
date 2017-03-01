@@ -1,15 +1,20 @@
 var MainView = function ( controller, dome ) {
-    // console.log( 'instantiating new Instance of MainView' );
     this.controller = controller;
     this.dome = dome;
+
     this.videoCtx = VideoContext.getDefaultCtx();
     this.videofeed = document.querySelector( 'video' );
+
     this.renderingCtx = this.createRenderingContext();
     this.offScrnCtx = OffScreenCtx.getDefaultCtx( 1944 );
+
     this.domeViewMediator = new DomeViewMediator( dome, new ViewMediatorFactory() );
+
     this.dewarpEngine = DewarpEngine.createInstance( this.offScrnCtx.fisheyeSrcArr );
-    this.dataTextureArray32 = new Uint32Array( 3888 * 972 * 2 );
     this.dataTextureArray = new Uint8Array( 4 * 3888 * 1944 );
+
+    // this.objectSelector = new ObjectSelector( this.domeViewMediator, this.renderingCtx );
+    // this.descriptionPanel = new DescriptionPanel();
 };
 
 MainView.prototype.createRenderingContext = function () {
@@ -28,16 +33,18 @@ MainView.prototype.init = function () {
     const view = this.domeViewMediator.view;
 
     scene.add( view );
+
+    // this.objectSelector.init();
+    // this.objectSelector.addObserver( 'mousemove', ( e ) => this.controller.onMouseMove( e.selectedObject ) );
+
     window.addEventListener( 'resize', ( e ) => this.onWindowResize(), false );
     this.videofeed.onloadedmetadata = () => this.render();
 };
 
 MainView.prototype.dewarpFrame = function () {
     // this.dewarpEngine.dewarpWithGPU( Array.from( this.offScrnCtx.getVidFramePixels( this.videoCtx.videofeed ) ), this.offScrnCtx.fisheyeSrcArr );
-    // this.dataTextureArray32 = this.dewarpEngine.dewarp32Bit( new Uint32Array( this.offScrnCtx.getVidFramePixels( this.videofeed ).buffer ) );
     this.dataTextureArray = this.dewarpEngine.dewarp( this.offScrnCtx.getVidFramePixels( this.videoCtx.videofeed ) );
     this.domeViewMediator.updateDataTexture( this.dataTextureArray );
-   // this.dewarpWorker.postMessage( [ this.offScrnCtx.getVidFramePixels( this.videoCtx.videofeed ), this.offScrnCtx.fisheyeSrcArr ] );
 };
 
 MainView.prototype.render = function () {
