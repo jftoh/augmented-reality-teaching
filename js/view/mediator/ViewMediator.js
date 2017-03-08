@@ -13,11 +13,12 @@ var ViewMediator = function ( object, mediatorFactory ) {
     this.object = object;
     this.mediatorFactory = mediatorFactory;
 
+    this.object.addObserver( 'ObjectAdded', ( e ) => this.onObjectAdded( e ) );
+
     // Three.js View
     this.view = this.createView();
     this.view.name = object.name;
 
-    // records all c
     this.childMediators = new Map();
 
     this.view.traverse( ( view ) => {
@@ -77,8 +78,4 @@ ViewMediator.prototype.onFrameRendered = function () {
 
 ViewMediator.prototype.onObjectAdded = function ( e ) {
     this.addChild( e.object );
-};
-
-ViewMediator.prototype.onEffectAdded = function ( e ) {
-    this.addChild( e.effect );
 };

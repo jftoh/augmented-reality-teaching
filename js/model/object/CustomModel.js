@@ -3,5 +3,5 @@ function CustomModel ( name, properties ) {
 	this.className = 'CustomModel';
 }
 
-CustomModel.prototype = Object.create( Observable.prototype );
-CustomModel.constructor = EnvObject;
+CustomModel.prototype = Object.create( SceneObject.prototype );
+CustomModel.constructor = CustomModel;

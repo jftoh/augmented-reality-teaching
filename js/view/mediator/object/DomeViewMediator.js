@@ -1,8 +1,6 @@
 function DomeViewMediator ( dome, mediatorFactory ) {
 	ViewMediator.call( this, dome, mediatorFactory );
 
-    this.object.addObserver( 'ObjectAdded', ( e ) => this.onObjectAdded( e ) );
-
 	this.dataTextureArr = new Uint8Array( 4 * 3888 * 972 * 2 );
 	this.dataTexture = this.initDataTexture( this.dataTextureArr );
     const domeObj = this.createDomeObj( window.innerHeight, 64, this.dataTexture );

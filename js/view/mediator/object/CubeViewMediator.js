@@ -1,7 +1,5 @@
 function CubeViewMediator ( cube, viewMediatorFactory ) {
 	ViewMediator.call( this, cube, viewMediatorFactory );
-
-	this.object.addObserver( 'EffectAdded', ( e ) => this.onEffectAdded( e ) );
 }
 
 CubeViewMediator.prototype = Object.create( ViewMediator.prototype );

@@ -2,18 +2,20 @@ var gpu = new GPU();
 
 var DewarpEngine = function ( fisheyeSrcArr ) {
 	this.fisheyeSrcArr = fisheyeSrcArr;
-	this.dewarpWithGPU = gpu.createKernel( function ( fisheyePixels32Bit, fisheyeSrcArr ) {
-		var srcArrPos;
-		for ( var j = 0; j < 3888; j++ ) {
-			srcArrPos = fisheyeSrcArr[ this.thread.x * 3888 + j ];
-
-			return fisheyePixels32Bit[ srcArrPos ];
-		}
-	} ).dimensions( 3888 * 972 * 2 );
 };
 
 DewarpEngine.createInstance = function ( fisheyeSrcArr ) {
 	return new DewarpEngine( fisheyeSrcArr );
+};
+
+DewarpEngine.prototype.dewarpWithGPU = function ( fisheyePixels ) {
+	var opt = {
+		dimensions: [ 3888, 972, 4 ],
+		debug: true,
+		graphical: false,
+		outputToTexture: true,
+		mode: "gpu"
+	};
 };
 
 DewarpEngine.prototype.dewarp = function ( fisheyePixels ) {
