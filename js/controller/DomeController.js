@@ -15,3 +15,7 @@ DomeController.prototype.setPanelText = function ( selectedObject, eventLabel ) 
 		this.view.descriptionPanel.text = `${ eventLabel }: ${ this.dome.name }`;
 	}
 };
+
+DomeController.prototype.onKeyPress = function (argument) {
+	// body... 
+};
