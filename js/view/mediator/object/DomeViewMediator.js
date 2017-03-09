@@ -37,7 +37,3 @@ DomeViewMediator.prototype.updateDataTexture = function ( pixelArr ) {
 	this.dataTextureArr.set( pixelArr );
 	this.dataTexture.needsUpdate = true;
 };
-
-DomeViewMediator.prototype.onObjectAdded = function ( e ) {
-    this.addChild( e.object );
-};

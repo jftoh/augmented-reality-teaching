@@ -8,16 +8,6 @@ DewarpEngine.createInstance = function ( fisheyeSrcArr ) {
 	return new DewarpEngine( fisheyeSrcArr );
 };
 
-DewarpEngine.prototype.dewarpWithGPU = function ( fisheyePixels ) {
-	var opt = {
-		dimensions: [ 3888, 972, 4 ],
-		debug: true,
-		graphical: false,
-		outputToTexture: true,
-		mode: "gpu"
-	};
-};
-
 DewarpEngine.prototype.dewarp = function ( fisheyePixels ) {
 	var perf_start = performance.now();
 	var x, srcArrPos, destArrPos;
