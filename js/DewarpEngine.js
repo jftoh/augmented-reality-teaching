@@ -25,7 +25,7 @@ DewarpEngine.prototype = ( function () {
 		 * @return { Uint8Array }  rearranged fisheye pixel data
 		 */
 		dewarp: function ( fisheyePixels ) {
-			var perf_start = performance.now();
+			// var perf_start = performance.now();
 			var x, srcArrPos, destArrPos;
 
 			var panoPixelArr = new Uint8Array( 4 * 3888 * 972 * 2 );
@@ -43,7 +43,7 @@ DewarpEngine.prototype = ( function () {
 				}
 			}
 
-			var perf_end = performance.now();
+			// var perf_end = performance.now();
 
 			// console.log( 'dewarp(): ' + ( perf_end - perf_start ) + 'ms' );
 
