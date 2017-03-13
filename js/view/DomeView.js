@@ -35,11 +35,18 @@ function DomeView ( controller, dome ) {
 
 DomeView.prototype = ( function () {
 
+	/**
+	 * Converts a single frame of the fisheye video feed into a panorama image.
+	 * Updates the data texture with image data from the resultant panorama.
+	 */
 	var dewarpFrame = function () {
 		this.dataTextureArr = this.dewarpEngine.dewarp( this.offScreenCtx.getVidFramePixels( this.videoContext.videofeed ) );
 		this.domeViewMediator.updateDataTexture( this.dataTextureArr );
 	};
 
+	/**
+	 * Scales the view to the current window size.
+	 */
 	var onWindowResize = function () {
 	    this.renderingContext.camera.aspect = window.innerWidth / window.innerHeight;
 	    this.renderingContext.camera.updateProjectionMatrix();
@@ -50,6 +57,9 @@ DomeView.prototype = ( function () {
 	return {
 		constructor: DomeView,
 
+		/**
+		 * Initializes the view.
+		 */
 		init: function () {
 			const scene = this.renderingContext.scene;
 			const threeJsView = this.domeViewMediator.view;
@@ -61,6 +71,9 @@ DomeView.prototype = ( function () {
 			this.videoContext.videofeed.onloadedmetadata = () => this.render();
 		},
 
+		/**
+		 * Main render method for the environment.
+		 */
 		render: function () {
 			requestAnimationFrame( () => this.render() );
 			this.renderingContext.controls.update();
