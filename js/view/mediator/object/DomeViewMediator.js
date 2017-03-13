@@ -54,7 +54,7 @@ function DomeViewMediator ( dome, mediatorFactory ) {
 }
 
 DomeViewMediator.prototype = Object.create( ViewMediator.prototype );
-DomeViewMediator.constructor = DomeViewMediator;
+DomeViewMediator.prototype.constructor = DomeViewMediator;
 
 /**
  * updates the data texture with new image data (in the form of an array)

@@ -3,7 +3,7 @@ function CubeViewMediator ( cube, viewMediatorFactory ) {
 }
 
 CubeViewMediator.prototype = Object.create( ViewMediator.prototype );
-CubeViewMediator.constructor = CubeViewMediator;
+CubeViewMediator.prototype.constructor = CubeViewMediator;
 
 CubeViewMediator.prototype.createView = function () {
 	const length = this.object.properties.length;

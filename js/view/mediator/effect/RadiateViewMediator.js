@@ -3,7 +3,7 @@ function RadiateViewMediator ( effect, viewMediatorFactory ) {
 }
 
 RadiateViewMediator.prototype = Object.create( ViewMediator.prototype );
-RadiateViewMediator.constructor = RadiateViewMediator;
+RadiateViewMediator.prototype.constructor = RadiateViewMediator;
 
 RadiateViewMediator.prototype.createView = function () {
 	const effectColor = this.object.properties.color;

@@ -3,7 +3,7 @@ function CustomModelViewMediator ( customModel, viewMediatorFactory ) {
 }
 
 CustomModelViewMediator.prototype = Object.create( ViewMediator.prototype );
-CustomModelViewMediator.constructor = CustomModelViewMediator;
+CustomModelViewMediator.prototype.constructor = CustomModelViewMediator;
 
 CustomModelViewMediator.prototype.addChild = function ( child ) {
 	const mediator = this.mediatorFactory.getMediator( child );
