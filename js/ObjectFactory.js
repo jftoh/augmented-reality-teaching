@@ -50,7 +50,7 @@ ObjectFactory.prototype.attachEffectToObject = function ( effectName, effectType
 		if ( this.objectExists( effectName ) ) {
 			console.error( 'Effect already exists. Please try a different name' );
 		} else {
-			let parentobj = this.dome.objects.get( properties.parentobj );
+			let parentobj = this.dome.children.get( properties.parentobj );
 			let effect = this.getObject( effectName, effectType, properties );
 			parentobj.addObject( effect );
 		}
@@ -59,9 +59,9 @@ ObjectFactory.prototype.attachEffectToObject = function ( effectName, effectType
 
 
 ObjectFactory.prototype.objectExists = function ( objectName ) {
-	return this.dome.objects.has( objectName );
+	return this.dome.children.has( objectName );
 };
 
 ObjectFactory.prototype.isStandaloneEffect = function ( properties ) {
-	return this.dome.objects.get( properties.parentobj ) === undefined;
+	return this.dome.children.get( properties.parentobj ) === undefined;
 };

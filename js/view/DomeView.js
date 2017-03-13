@@ -30,6 +30,7 @@ function DomeView ( controller, dome ) {
 
 	// conversion of fisheye image into a panorama
 	this.dewarpEngine = DewarpEngine.createInstance( this.offScreenCtx.fisheyeSrcArr );
+	console.log( this.dewarpEngine );
 	this.dataTextureArr = new Uint8Array( DATA_TEXTURE_ARR_SIZE );
 }
 

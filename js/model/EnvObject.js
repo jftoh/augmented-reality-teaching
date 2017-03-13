@@ -6,14 +6,22 @@
 
 /**
  * Constructor.
- * @param {[type]} name       [description]
- * @param {[type]} properties [description]
+ * @param { String } name       [description]
+ * @param { JSON } properties [description]
  */
 function EnvObject ( name, properties ) {
 	Observable.call( this );
     this.name = name;
     this.properties = properties;
+
+    this.children = new Map();
 }
 
 EnvObject.prototype = Object.create( Observable.prototype );
-EnvObject.constructor = EnvObject;
+EnvObject.prototype.constructor = EnvObject;
+
+EnvObject.prototype.addObject = function ( envObject ) {
+	envObject.parent = this;
+	this.children.set( envObject.name, envObject );
+	this.notify( 'ObjectAdded', { "object": envObject } );
+};

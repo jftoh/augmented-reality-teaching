@@ -1,14 +1,14 @@
+/**
+ * Constructor.
+ * @param { String } name       [description]
+ * @param { JSON } properties [description]
+ */
 function Dome ( name, properties ) {
     EnvObject.call( this, name, properties );
     this.className = 'Dome';
-    this.objects = new Map();
+
+    this.objectFocus = false;
 }
 
 Dome.prototype = Object.create( EnvObject.prototype );
-Dome.constructor = Dome;
-
-Dome.prototype.addObject = function ( object ) {
-	object.parent = this;
-	this.objects.set( object.name, object );
-	this.notify( 'ObjectAdded', { "object": object } );
-};
+Dome.prototype.constructor = Dome;

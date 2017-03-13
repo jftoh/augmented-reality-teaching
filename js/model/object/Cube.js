@@ -1,7 +1,7 @@
 function Cube ( name, properties ) {
-	SceneObject.call( this, name, properties );
+	EnvObject.call( this, name, properties );
 	this.className = 'Cube';
 }
 
-Cube.prototype = Object.create( SceneObject.prototype );
-Cube.constructor = Cube;
+Cube.prototype = Object.create( EnvObject.prototype );
+Cube.prototype.constructor = Cube;

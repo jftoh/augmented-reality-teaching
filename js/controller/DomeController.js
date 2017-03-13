@@ -1,21 +1,19 @@
 var DomeController = function ( dome ) {
 	this.dome = dome;
-	this.view = new MainView( this, dome );
+	this.view = new DomeView( this, dome );
 	this.view.init();
+
+	this.toggleFocusMode = function () {
+		this.dome.objectFocus = !this.dome.objectFocus;
+		console.log( 'focus mode: ' + this.dome.objectFocus );
+	};
 };
 
-DomeController.prototype.onMouseMove = function ( selectedObject ) {
-	this.setPanelText( selectedObject, 'On Hover' );
-};
-
-DomeController.prototype.setPanelText = function ( selectedObject, eventLabel ) {
-	if ( selectedObject ) {
-		this.view.descriptionPanel.text = `${ eventLabel }: ${ selectedObject.name }`;
-	} else {
-		this.view.descriptionPanel.text = `${ eventLabel }: ${ this.dome.name }`;
+DomeController.prototype.onKeyDown = function ( e ) {
+	console.log( 'function call: onKeyDown' );
+	switch ( e.keyCode ) {
+		case 79: // 'o' key
+			this.toggleFocusMode();
+			break;
 	}
-};
-
-DomeController.prototype.onKeyPress = function (argument) {
-	// body... 
 };
