@@ -5,7 +5,7 @@ var RenderingContext = function ( scene, camera, renderer, controls ) {
     this.controls = controls;
 };
 
-RenderingContext.getDefaultCtx = function ( ) {
+RenderingContext.getDefaultCtx = function ( container ) {
     const fieldOfView = 75;
     const nearClippingPlane = 0.1;
     const farClippingPlane = 1000;
@@ -24,7 +24,7 @@ RenderingContext.getDefaultCtx = function ( ) {
     scene.add( camera );
     scene.add( light );
 
-    document.body.appendChild( renderer.domElement );
+    container.appendChild( renderer.domElement );
 
     return new RenderingContext( scene, camera, renderer, controls );
 };

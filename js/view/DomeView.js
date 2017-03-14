@@ -22,7 +22,7 @@ function DomeView ( controller, dome ) {
 
 		document.body.appendChild( domContainer );
 
-		return RenderingContext.getDefaultCtx();
+		return RenderingContext.getDefaultCtx( domContainer );
 	} )();
 
 	// off-screen canvas to capture a single frame of the video feed
@@ -33,6 +33,7 @@ function DomeView ( controller, dome ) {
 	this.dataTextureArr = new Uint8Array( DATA_TEXTURE_ARR_SIZE );
 
 	this.objectSelector = new ObjectSelector( this.renderingContext );
+	this.descriptionPanel = new DescriptionPanel();
 }
 
 DomeView.prototype = ( function () {
@@ -58,6 +59,7 @@ DomeView.prototype = ( function () {
 
 	var focusOnObject = function ( e ) {
 		this.renderingContext.controls.target = e.object.position;
+		this.descriptionPanel.text = e.object.name;
 	};
 
 	return {
