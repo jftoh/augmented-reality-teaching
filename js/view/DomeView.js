@@ -32,7 +32,7 @@ function DomeView ( controller, dome ) {
 	this.dewarpEngine = DewarpEngine.createInstance( this.offScreenCtx.fisheyeSrcArr );
 	this.dataTextureArr = new Uint8Array( DATA_TEXTURE_ARR_SIZE );
 
-	window.addEventListener( 'keydown', ( e ) => this.controller.onKeyDown( e ), false );
+	this.objectSelector = new ObjectSelector( this.renderingContext );
 }
 
 DomeView.prototype = ( function () {
@@ -56,6 +56,10 @@ DomeView.prototype = ( function () {
 	    this.renderingContext.renderer.setSize( window.innerWidth, window.innerHeight );
 	};
 
+	var focusOnObject = function ( e ) {
+		this.renderingContext.controls.target = e.object.position;
+	};
+
 	return {
 		constructor: DomeView,
 
@@ -69,6 +73,10 @@ DomeView.prototype = ( function () {
 			scene.add( threeJsView );
 
 			window.addEventListener( 'resize', ( e ) => onWindowResize.call( this ), false );
+
+			window.addEventListener( 'keydown', ( e ) => this.controller.onKeyDown( e ), false );
+
+			this.dome.addObserver( 'onObjectFocus', ( e ) => focusOnObject.call( this, e ) );
 
 			this.videoContext.videofeed.onloadedmetadata = () => this.render();
 		},

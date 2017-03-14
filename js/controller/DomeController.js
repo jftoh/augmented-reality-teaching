@@ -6,11 +6,11 @@ function DomeController ( dome ) {
 
 DomeController.prototype = ( function () {
 	var focusOnNextObject = function () {
-		this.dome.focusOnNextObject();
+		this.view.domeViewMediator.focusOnNextObject();
 	};
 
 	var focusOnPreviousObject = function () {
-		this.dome.focusOnPreviousObject();
+		this.view.domeViewMediator.focusOnPreviousObject();
 	};
 
 	return {
