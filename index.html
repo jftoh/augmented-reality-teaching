@@ -8,12 +8,19 @@
 	<script type="text/javascript" src="js/lib/MTLLoader.js"></script>
  	<script type="text/javascript" src="js/view/controls/OrbitControls.js"></script>
  	<script type="text/javascript" src="js/view/controls/TransformControls.js"></script>
+ 	<script type="text/javascript" src="js/view/controls/HeadsUpDisplay.js"></script>
 	<script type="text/javascript" src="js/lib/gpu.min.js"></script>
-	<style type="text/css"></style>
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+	<link rel="stylesheet" href="css/infobar.css">
 </head>
 <body>
 	<video style="display: none"></video>
-	<div id="info">	</div>
+	<div id="hud">
+		<ul>
+			<li id="transformMode">Transformation Mode: none</li>
+			<li id="currObject"> Current Object on Focus: none</li>
+		</ul>
+	</div>
 
 	<script type="text/javascript" src="js/Observable.js"></script>
 	<script type="text/javascript" src="js/ObjectFactory.js"></script>
