@@ -1,32 +1,62 @@
+/**
+ * Constructor.
+ * @param {Dome} dome reference to Dome object.
+ */
 function DomeController ( dome ) {
 	this.dome = dome;
-	this.view = new DomeView( this, dome );
-	this.view.init();
+	this.domeView = new DomeView( this, dome );
+	this.domeView.init();
+
+	this.orbitControls = new THREE.OrbitControls( this.domeView.renderingContext.camera );
+	this.transformControls = new THREE.TransformControls( this.domeView.renderingContext.camera,
+														  this.domeView.renderingContext.renderer.domElement );
+	this.domeView.renderingContext.scene.add( this.transformControls );
 }
 
 DomeController.prototype = ( function () {
-	var focusOnNextObject = function () {
-		this.view.domeViewMediator.focusOnNextObject();
-	};
-
-	var focusOnPreviousObject = function () {
-		this.view.domeViewMediator.focusOnPreviousObject();
-	};
-
 	return {
 		constructor: DomeController,
 
-		onKeyDown: function ( e ) {
-			switch ( e.keyCode ) {
-				case 38: // up key
-					focusOnPreviousObject.call( this );
-					break;
-				case 40: // down key
-					focusOnNextObject.call( this );
-					break;
+		cycleObjects: function () {
+			let currObject = this.domeView.domeViewMediator.focusOnNextObject();
+			this.transformControls.attach( currObject );
+		},
+
+		returnToNavigationMode: function () {
+			this.transformControls.detach();
+			this.orbitControls.reset();
+		},
+
+		updateCameraFocus: function ( object ) {
+			this.orbitControls.target.copy( object.position );
+			this.orbitControls.update();
+		},
+
+		toggleTransformMode: function ( mode ) {
+			switch ( mode ) {
+				case 'r':
+					this.transformControls.setMode( 'rotate' );
+					return;
+
+				case 's':
+					this.transformControls.setMode( 'scale' );
+					return;
+
+				case 't':
+					this.transformControls.setMode( 'translate' );
+					return;
 				default:
-					break;
+					return;
 			}
+		},
+
+		toggleEffect: function () {
+			let currObject = this.transformControls.object;
+			currObject.traverse( function ( object ) {
+				if ( object.name.includes( 'radiate' ) ) {
+					object.visible = !object.visible;
+				}
+			} );
 		}
 	};
 } )();

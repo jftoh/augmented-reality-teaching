@@ -1,0 +1,94 @@
+{
+	"metadata": {
+		"version": 4.4,
+		"type": "Object",
+		"generator": "Object3D.toJSON"
+	},
+	"geometries": [
+		{
+			"uuid": "0371C0BB-A5A4-4FD6-949A-2255EB36981A",
+			"type": "BoxBufferGeometry",
+			"width": 10,
+			"height": 2,
+			"depth": 7,
+			"widthSegments": 0,
+			"heightSegments": 0,
+			"depthSegments": 0
+		},
+		{
+			"uuid": "27625F40-5E93-4D3B-ABD4-D1FD8356A7CF",
+			"type": "CylinderBufferGeometry",
+			"radiusTop": 0.1,
+			"radiusBottom": 0.25,
+			"height": 10,
+			"radialSegments": 32,
+			"heightSegments": 1,
+			"openEnded": false
+		},
+		{
+			"uuid": "1DF2A598-73EF-4F75-AD10-02418316C86D",
+			"type": "CylinderBufferGeometry",
+			"radiusTop": 0.1,
+			"radiusBottom": 0.25,
+			"height": 10,
+			"radialSegments": 32,
+			"heightSegments": 1,
+			"openEnded": false
+		}],
+	"materials": [
+		{
+			"uuid": "8CF9ABE0-7020-4599-9E4D-1AA7E957D481",
+			"type": "MeshLambertMaterial",
+			"color": 33023,
+			"emissive": 33023,
+			"depthFunc": 3,
+			"depthTest": true,
+			"depthWrite": true,
+			"skinning": false,
+			"morphTargets": false
+		},
+		{
+			"uuid": "07C5D9B1-5500-4CE3-95DB-73F9BE4F8208",
+			"type": "MeshStandardMaterial",
+			"color": 16777215,
+			"roughness": 0.5,
+			"metalness": 0.5,
+			"emissive": 0,
+			"depthFunc": 3,
+			"depthTest": true,
+			"depthWrite": true,
+			"skinning": false,
+			"morphTargets": false
+		}],
+	"object": {
+		"uuid": "D151D1CD-1C99-44AA-9705-332D9D65B210",
+		"type": "Group",
+		"name": "Router",
+		"matrix": [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+		"children": [
+			{
+				"uuid": "58B618B7-4C11-4D47-9619-CD06F1C0B547",
+				"type": "Mesh",
+				"name": "Base",
+				"matrix": [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+				"geometry": "0371C0BB-A5A4-4FD6-949A-2255EB36981A",
+				"material": "8CF9ABE0-7020-4599-9E4D-1AA7E957D481"
+			},
+			{
+				"uuid": "5776E10F-E0FC-4219-9915-7C3516E80479",
+				"type": "Mesh",
+				"name": "Right Antenna",
+				"matrix": [1,0,0,0,0,1,0,0,0,0,1,0,3.685468,4.35,-2.314238,1],
+				"geometry": "27625F40-5E93-4D3B-ABD4-D1FD8356A7CF",
+				"material": "07C5D9B1-5500-4CE3-95DB-73F9BE4F8208"
+			},
+			{
+				"uuid": "B8F88B41-B36C-4A7F-8B5E-A149E793B55A",
+				"type": "Mesh",
+				"name": "Left Antenna",
+				"matrix": [1,0,0,0,0,1,0,0,0,0,1,0,-3.665815,4.354015,-2.314186,1],
+				"geometry": "1DF2A598-73EF-4F75-AD10-02418316C86D",
+				"material": "07C5D9B1-5500-4CE3-95DB-73F9BE4F8208"
+			}]
+	}
+}

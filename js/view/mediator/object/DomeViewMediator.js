@@ -86,11 +86,6 @@ DomeViewMediator.prototype.focusOnNextObject = function () {
     this.objectFocusQueue.push( currObject );
 
     this.object.notify( 'onObjectFocus', { "object": currObject } );
-};
 
-DomeViewMediator.prototype.focusOnPreviousObject = function () {
-    let currObject = this.objectFocusQueue.pop();
-    this.objectFocusQueue.unshift( currObject );
-
-    this.object.notify( 'onObjectFocus', { "object": currObject } );
+    return currObject;
 };

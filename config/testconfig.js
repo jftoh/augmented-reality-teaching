@@ -2,13 +2,7 @@
 /* Add All Objects Here */
 /*======================*/
 
-objFactory.addObject( 'cube01',
-	                  'Cube',
-					  {
-					  	"coordinates": [ 35, 115, 50 ],
-						"length": 3
-					  } );
-
+/*
 objFactory.addObject( 'cube02',
                       'Cube',
 					  {
@@ -16,19 +10,41 @@ objFactory.addObject( 'cube02',
 						"length": 3
 					  } );
 
-objFactory.addObject( 'multimaterialtest',
-	                  'CustomModel',
-	                  {
-	                  	"coordinates": [ 0, 5, 10 ],
-	                  	"filepath": "../assets/multimaterial.js"
-	                  } );
-
 objFactory.addObject( 'arrowhead',
 				      'CustomModel',
 				      {
+				      	"filetype": "single",
 				      	"coordinates": [ 0, 25, 10 ],
 				      	"filepath": "../assets/arrowhead.js"
 				      } );
+				      */
+
+objFactory.addObject( 'router',
+					  'CustomModel',
+					  {
+					  	"filetype": "json",
+					  	"coordinates": [ 5, 10, -45 ],
+					  	"filepath": "../assets/router_2.json"
+					  } );
+
+objFactory.addObject( 'pc',
+					  'CustomModel',
+					  {
+					  	"filetype": "objmtl",
+					  	"coordinates": [ 40, 10, -30 ],
+					  	"filepath": "assets/pc/",
+					  } );
+
+
+/*
+objFactory.addObject( 'iphone',
+					  'CustomModel',
+					  {
+					  	"filetype": "js",
+					  	"coordinates": [ 25, 10, -45 ],
+					  	"filepath": "../assets/json/iphone.js"
+					  } );
+*/
 
 /*======================*/
 /* Add All Effects Here */
@@ -38,24 +54,15 @@ objFactory.addObject( 'arrowhead',
 objFactory.addEffect( 'radiate01',
 					  'Radiate',
 					  {
-					  	"parentobj": "cube02",
+					  	"parentobj": "router",
 					  	"color": 0x00ff00,
 					  	"rateOfGrowth": 0.05
 					  } );
 
-objFactory.addEffect( 'standalone_radiate',
-					  'Radiate',
-					  {
-					  	"coordinates": [ 50, 100, 10 ],
-					  	"color": 0x0000ff,
-					  	"rateOfGrowth": 0.1
-					  } );
-
-
-objFactory.addEffect( 'arrowhead_radiate',
-	                  'Radiate',
-	                  {
-	                  	"parentobj": "arrowhead",
-	                  	"color": 0x0000ff,
-	                  	"rateOfGrowth": 0.05
-	                  } );
+// objFactory.addEffect( 'standalone_radiate',
+// 					  'Radiate',
+// 					  {
+// 					  	"coordinates": [ 50, 100, 10 ],
+// 					  	"color": 0x0000ff,
+// 					  	"rateOfGrowth": 0.1
+// 					  } );

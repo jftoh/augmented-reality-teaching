@@ -4,33 +4,16 @@
 	<meta charset="UTF-8">
 	<title>Augmented Reality for Teaching</title>
 	<script type="text/javascript" src="js/lib/three.min.js"></script>
- 	<script type="text/javascript" src="js/lib/OrbitControls.js"></script>
+	<script type="text/javascript" src="js/lib/OBJLoader.js"></script>
+	<script type="text/javascript" src="js/lib/MTLLoader.js"></script>
+ 	<script type="text/javascript" src="js/view/controls/OrbitControls.js"></script>
+ 	<script type="text/javascript" src="js/view/controls/TransformControls.js"></script>
 	<script type="text/javascript" src="js/lib/gpu.min.js"></script>
-	<style>
-        body {
-            margin: 0px;
-            background-color: #000000;
-            overflow: hidden;
-            font-family: Monospace;
-        }
-
-        div {
-            position: absolute;
-        }
-
-        #panel {
-            z-index:30;
-            width: 200px;
-            padding:5px;
-            background-color: #000000;
-            color: #fff;
-            font-size: 14px;
-            line-height: 1.2;
-        }
-    </style>
+	<style type="text/css"></style>
 </head>
 <body>
 	<video style="display: none"></video>
+	<div id="info">	</div>
 
 	<script type="text/javascript" src="js/Observable.js"></script>
 	<script type="text/javascript" src="js/ObjectFactory.js"></script>
@@ -44,9 +27,6 @@
 	<script type="text/javascript" src="js/model/effect/RadiateEffect.js"></script>
 
 	<script type="text/javascript" src="js/controller/DomeController.js"></script>
-
-	<script type="text/javascript" src="js/view/controls/ObjectSelector.js"></script>
-	<script type="text/javascript" src="js/view/controls/DescriptionPanel.js"></script>
 
 	<script type="text/javascript" src="js/view/context/OffScreenCtx.js"></script>
 	<script type="text/javascript" src="js/view/context/VideoContext.js"></script>

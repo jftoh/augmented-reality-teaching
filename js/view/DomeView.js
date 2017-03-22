@@ -31,9 +31,6 @@ function DomeView ( controller, dome ) {
 	// conversion of fisheye image into a panorama
 	this.dewarpEngine = DewarpEngine.createInstance( this.offScreenCtx.fisheyeSrcArr );
 	this.dataTextureArr = new Uint8Array( DATA_TEXTURE_ARR_SIZE );
-
-	this.objectSelector = new ObjectSelector( this.renderingContext );
-	this.descriptionPanel = new DescriptionPanel();
 }
 
 DomeView.prototype = ( function () {
@@ -57,9 +54,44 @@ DomeView.prototype = ( function () {
 	    this.renderingContext.renderer.setSize( window.innerWidth, window.innerHeight );
 	};
 
+	/**
+	 * [focusOnObject description]
+	 * @param  {[type]} e [description]
+	 * @return {[type]}   [description]
+	 */
 	var focusOnObject = function ( e ) {
-		this.renderingContext.controls.target = e.object.position;
-		this.descriptionPanel.text = e.object.name;
+		this.controller.updateCameraFocus( e.object );
+	};
+
+	/**
+	 * [handleKeyDown description]
+	 * @param  {[type]} e [description]
+	 * @return {[type]}   [description]
+	 */
+	var handleKeyDown = function ( e ) {
+		switch ( e.key ) {
+			case 'Tab':
+				this.controller.cycleObjects();
+				e.preventDefault();
+				break;
+			case 'Escape':
+				this.controller.returnToNavigationMode();
+				e.preventDefault();
+				break;
+			case 't':
+			case 's':
+			case 'r':
+				this.controller.toggleTransformMode( e.key );
+				e.preventDefault();
+				break;
+
+			case 'e':
+				this.controller.toggleEffect();
+				e.preventDefault();
+				break;
+			default:
+				return;
+		}
 	};
 
 	return {
@@ -74,11 +106,11 @@ DomeView.prototype = ( function () {
 
 			scene.add( threeJsView );
 
+			this.dome.addObserver( 'onObjectFocus', ( e ) => focusOnObject.call( this, e ) );
+
 			window.addEventListener( 'resize', ( e ) => onWindowResize.call( this ), false );
 
-			window.addEventListener( 'keydown', ( e ) => this.controller.onKeyDown( e ), false );
-
-			this.dome.addObserver( 'onObjectFocus', ( e ) => focusOnObject.call( this, e ) );
+			window.addEventListener( 'keydown', ( e ) => handleKeyDown.call( this, e ) );
 
 			this.videoContext.videofeed.onloadedmetadata = () => this.render();
 		},
@@ -88,7 +120,6 @@ DomeView.prototype = ( function () {
 		 */
 		render: function () {
 			requestAnimationFrame( () => this.render() );
-			this.renderingContext.controls.update();
 			dewarpFrame.call( this );
 			this.domeViewMediator.onFrameRendered();
 			this.renderingContext.renderer.render( this.renderingContext.scene, this.renderingContext.camera );

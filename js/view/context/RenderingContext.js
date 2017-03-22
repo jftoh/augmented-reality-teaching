@@ -1,8 +1,7 @@
-var RenderingContext = function ( scene, camera, renderer, controls ) {
+var RenderingContext = function ( scene, camera, renderer ) {
     this.scene = scene;
     this.camera = camera;
     this.renderer = renderer;
-    this.controls = controls;
 };
 
 RenderingContext.getDefaultCtx = function ( container ) {
@@ -14,9 +13,10 @@ RenderingContext.getDefaultCtx = function ( container ) {
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera( fieldOfView, width / height, nearClippingPlane, farClippingPlane );
     const renderer = new THREE.WebGLRenderer();
-    const controls = new THREE.OrbitControls( camera );
     const light = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.85 );
 
+    camera.position.x = -2.4;
+    camera.position.y = -4.2;
     camera.position.z = 5;
 
     renderer.setSize( width, height );
@@ -26,5 +26,5 @@ RenderingContext.getDefaultCtx = function ( container ) {
 
     container.appendChild( renderer.domElement );
 
-    return new RenderingContext( scene, camera, renderer, controls );
+    return new RenderingContext( scene, camera, renderer );
 };
