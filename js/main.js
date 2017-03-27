@@ -1,3 +1,2 @@
-const dome = new Dome( 'Dome', {} );
-const domeController = new DomeController( dome );
-const objFactory = ObjectFactory.getInstance( dome );
+const domeView = new DomeView();
+domeView.init();

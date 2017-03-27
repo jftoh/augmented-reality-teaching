@@ -6,11 +6,6 @@ function DomeController ( dome ) {
 	this.dome = dome;
 	this.domeView = new DomeView( this, dome );
 	this.domeView.init();
-
-	this.orbitControls = new THREE.OrbitControls( this.domeView.renderingContext.camera );
-	this.transformControls = new THREE.TransformControls( this.domeView.renderingContext.camera,
-														  this.domeView.renderingContext.renderer.domElement );
-	this.domeView.renderingContext.scene.add( this.transformControls );
 }
 
 DomeController.prototype = ( function () {

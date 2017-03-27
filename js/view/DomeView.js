@@ -3,36 +3,61 @@
  * @param { DomeController } controller reference to dome controller
  * @param { Dome } dome       reference to dome model
  */
-function DomeView ( controller, dome ) {
+function DomeView () {
 	const FISHEYE_LENGTH = 1944;
 	const DATA_TEXTURE_ARR_SIZE = 3888 * 1944 * 4;
-
-	// references to controller and model
-	this.controller = controller;
-	this.dome = dome;
-
-	this.domeViewMediator = new DomeViewMediator( dome, new ViewMediatorFactory() );
 
 	// reference to fisheye video feed
 	this.videoContext = VideoContext.getDefaultCtx();
 
 	// Three.js scene, camera, renderer
-	this.renderingContext = ( function () {
-		const domContainer = document.createElement( 'div' );
-
-		document.body.appendChild( domContainer );
-
-		return RenderingContext.getDefaultCtx( domContainer );
-	} )();
+	this.renderingContext = createRenderingContext();
 
 	// off-screen canvas to capture a single frame of the video feed
 	this.offScreenCtx  = OffScreenCtx.getDefaultCtx( FISHEYE_LENGTH );
 
 	// conversion of fisheye image into a panorama
 	this.dewarpEngine = DewarpEngine.createInstance( this.offScreenCtx.fisheyeSrcArr );
-	this.dataTextureArr = new Uint8Array( DATA_TEXTURE_ARR_SIZE );
 
-	this.hud = new HeadsUpDisplay();
+	this.dome = createDome( window.innerHeight, 64 );
+
+	function createRenderingContext () {
+		const domContainer = document.createElement( 'div' );
+
+		document.body.appendChild( domContainer );
+
+		return RenderingContext.getDefaultCtx( domContainer );
+	}
+
+	function createDome ( radius, numSegments ) {
+		let dataTextureArr = new Uint8Array( DATA_TEXTURE_ARR_SIZE );
+		let dataTexture = initDataTexture( dataTextureArr );
+
+		return new Dome(
+			new THREE.SphereGeometry( radius, numSegments ),
+			new THREE.MeshBasicMaterial( {
+				map: dataTexture,
+				side: THREE.BackSide
+			} ),
+			dataTextureArr
+		);
+	}
+
+	/**
+     * [initDataTexture description]
+     * @param  {[type]} dataTextureArr [description]
+     * @return {[type]}                [description]
+     */
+    function initDataTexture ( dataTextureArr ) {
+        var dataTexture = new THREE.DataTexture( dataTextureArr, 3888, 1944, THREE.RGBAFormat );
+        dataTexture.minFilter = THREE.LinearFilter;
+        dataTexture.magFilter = THREE.NearestFilter;
+        dataTexture.generateMipmaps = false;
+        dataTexture.flipY = true;
+        dataTexture.flipX = true;
+
+        return dataTexture;
+    }
 }
 
 DomeView.prototype = ( function () {
@@ -42,8 +67,8 @@ DomeView.prototype = ( function () {
 	 * Updates the data texture with image data from the resultant panorama.
 	 */
 	var dewarpFrame = function () {
-		this.dataTextureArr = this.dewarpEngine.dewarp( this.offScreenCtx.getVidFramePixels( this.videoContext.videofeed ) );
-		this.domeViewMediator.updateDataTexture( this.dataTextureArr );
+		let dataTextureArr = this.dewarpEngine.dewarp( this.offScreenCtx.getVidFramePixels( this.videoContext.videofeed ) );
+		this.dome.updateDataTexture( dataTextureArr );
 	};
 
 	/**
@@ -104,15 +129,12 @@ DomeView.prototype = ( function () {
 		 */
 		init: function () {
 			const scene = this.renderingContext.scene;
-			const threeJsView = this.domeViewMediator.view;
 
-			scene.add( threeJsView );
-
-			this.dome.addObserver( 'onObjectFocus', ( e ) => focusOnObject.call( this, e ) );
+			scene.add( this.dome );
 
 			window.addEventListener( 'resize', ( e ) => onWindowResize.call( this ), false );
 
-			window.addEventListener( 'keydown', ( e ) => handleKeyDown.call( this, e ) );
+			// window.addEventListener( 'keydown', ( e ) => handleKeyDown.call( this, e ) );
 
 			this.videoContext.videofeed.onloadedmetadata = () => this.render();
 		},
@@ -123,7 +145,6 @@ DomeView.prototype = ( function () {
 		render: function () {
 			requestAnimationFrame( () => this.render() );
 			dewarpFrame.call( this );
-			this.domeViewMediator.onFrameRendered();
 			this.renderingContext.renderer.render( this.renderingContext.scene, this.renderingContext.camera );
 		}
 	};
