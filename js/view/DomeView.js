@@ -19,7 +19,7 @@ function DomeView () {
 	// conversion of fisheye image into a panorama
 	this.dewarpEngine = DewarpEngine.createInstance( this.offScreenCtx.fisheyeSrcArr );
 
-	this.dome = createDome( window.innerHeight, 64 );
+	this.dome = new Dome();
 
 	function createRenderingContext () {
 		const domContainer = document.createElement( 'div' );
@@ -28,36 +28,6 @@ function DomeView () {
 
 		return RenderingContext.getDefaultCtx( domContainer );
 	}
-
-	function createDome ( radius, numSegments ) {
-		let dataTextureArr = new Uint8Array( DATA_TEXTURE_ARR_SIZE );
-		let dataTexture = initDataTexture( dataTextureArr );
-
-		return new Dome(
-			new THREE.SphereGeometry( radius, numSegments ),
-			new THREE.MeshBasicMaterial( {
-				map: dataTexture,
-				side: THREE.BackSide
-			} ),
-			dataTextureArr
-		);
-	}
-
-	/**
-     * [initDataTexture description]
-     * @param  {[type]} dataTextureArr [description]
-     * @return {[type]}                [description]
-     */
-    function initDataTexture ( dataTextureArr ) {
-        var dataTexture = new THREE.DataTexture( dataTextureArr, 3888, 1944, THREE.RGBAFormat );
-        dataTexture.minFilter = THREE.LinearFilter;
-        dataTexture.magFilter = THREE.NearestFilter;
-        dataTexture.generateMipmaps = false;
-        dataTexture.flipY = true;
-        dataTexture.flipX = true;
-
-        return dataTexture;
-    }
 }
 
 DomeView.prototype = ( function () {

@@ -2,10 +2,8 @@
  * Constructor.
  * @param {Dome} dome reference to Dome object.
  */
-function DomeController ( dome ) {
-	this.dome = dome;
-	this.domeView = new DomeView( this, dome );
-	this.domeView.init();
+function DomeController ( domeView ) {
+	this.domeView = domeView;
 }
 
 DomeController.prototype = ( function () {
