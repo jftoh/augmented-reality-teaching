@@ -28,6 +28,8 @@ DomeController.prototype = ( function () {
 		constructor: DomeController,
 
 		cycleObjects: function () {
+			this.editMode = true;
+
 			let currObjModel = this.dome.focusOnNextChild();
 			let currObjView = this.domeView.domeViewMediator.getChildMediatorView( currObjModel );
 
@@ -45,6 +47,7 @@ DomeController.prototype = ( function () {
 				this.orbitControls.reset();
 				this.domeView.hud.domContainer.style.visibility = 'hidden';
 				setCurrObjDisplayText.call( this, 'none' );
+				this.editMode = false;
 			}
 		},
 
