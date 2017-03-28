@@ -2,7 +2,7 @@ function Dome () {
 	this.dataTextureArr = new Uint8Array ( 4 * 3888 * 972 * 2 );
 	this.dataTexture = initDataTexture( this.dataTextureArr );
 
-	this.geometry = new THREE.SphereGeometry( window.innerheight, 128, 128 );
+	this.geometry = new THREE.SphereGeometry( window.innerheight, 64, 64 );
 	this.material = new THREE.MeshBasicMaterial( {
 		map: this.dataTexture,
 		side: THREE.BackSide
@@ -38,3 +38,11 @@ Dome.prototype.presentNextObject = function () {
 	this.children.push( currObject );
 	return currObject;
 };
+
+/*
+Dome.prototype.update = function () {
+	for ( var i = 0; i < this.children.length; i++ ) {
+		this.children[ i ].update();
+	}
+};
+*/

@@ -2,9 +2,10 @@
  * Constructor.
  * @param {Dome} dome reference to Dome object.
  */
-function DomeController ( dome, domeView ) {
+function DomeController ( dome ) {
 	this.dome = dome;
-	this.domeView = domeView;
+	this.domeView = new DomeView( dome, this );
+	this.domeView.init();
 	this.renderingCtx = this.domeView.renderingContext;
 }
 
@@ -23,9 +24,14 @@ DomeController.prototype = ( function () {
 		constructor: DomeController,
 
 		cycleObjects: function () {
-			let currObject = this.dome.presentNextObject();
-			this.renderingCtx.transformControls.attach( currObject );
-			this.updateCameraFocus( currObject );
+			if ( this.dome.children.length > 0 ) {
+				let currObject = this.dome.presentNextObject();
+				this.renderingCtx.transformControls.attach( currObject );
+				this.updateCameraFocus( currObject );
+			} else {
+				this.returnToNavigationMode();
+			}
+
 			// this.domeView.hud.domContainer.style.visibility = 'visible';
 			// setCurrObjDisplayText.call( this, currObject.name );
 			// setTransformModeDisplayText.call( this, 'translate' );
@@ -38,8 +44,8 @@ DomeController.prototype = ( function () {
 		},
 
 		returnToNavigationMode: function () {
-			this.renderingCtx.transformControls.detach();
 			this.renderingCtx.orbitControls.reset();
+			this.renderingCtx.transformControls.detach();
 			// this.domeView.hud.domContainer.style.visibility = 'hidden';
 			// setCurrObjDisplayText.call( this, 'none' );
 		},

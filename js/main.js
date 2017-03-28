@@ -1,9 +1,5 @@
 const dome = new Dome();
-const domeView = new DomeView( dome );
-domeView.init();
-
-const domeController = new DomeController( dome, domeView );
-const customModelFactory = new CustomModelFactory();
+const domeController = new DomeController( dome );
 
 var config = {
 	'location': 'office',
@@ -16,6 +12,7 @@ var config = {
 			'assetDirectory': 'assets/router_2.json'
 		},
 
+		/*
 		{
 			'name': 'scale',
 			'coordinates': [ -5, 20, 5 ],
@@ -31,6 +28,7 @@ var config = {
 			'assetFileType': 'js',
 			'assetDirectory': 'assets/arrowhead.js'
 		},
+		*/
 
 		{
 			'name': 'pc',
@@ -42,11 +40,5 @@ var config = {
 	]
 };
 
-var objects = config.objects;
-
-for ( let i = 0; i < objects.length; i++ ) {
-	let model = customModelFactory.getModel( objects[ i ] );
-	domeView.dome.add( model );
-}
-
-console.log( domeView.dome );
+const modelFactory = new ModelFactory ( config.objects, dome );
+modelFactory.loadObjects();

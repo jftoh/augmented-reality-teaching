@@ -17,11 +17,11 @@ RenderingContext.getDefaultCtx = function ( container ) {
     const renderer = new THREE.WebGLRenderer();
     const light = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.85 );
 
-    const orbitControls = new THREE.OrbitControls( camera );
-    const transformControls = new THREE.TransformControls( camera );
+    const orbitControls = new THREE.OrbitControls( camera, renderer.domElement );
+    const transformControls = new THREE.TransformControls( camera, renderer.domElement );
 
     camera.position.x = -2.4;
-    camera.position.y = -4.2;
+    camera.position.y = -2.2;
     camera.position.z = 5;
 
     renderer.setSize( width, height );

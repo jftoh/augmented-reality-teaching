@@ -3,7 +3,7 @@
  * @param { DomeController } controller reference to dome controller
  * @param { Dome } dome       reference to dome model
  */
-function DomeView ( dome ) {
+function DomeView ( dome, controller ) {
 	const FISHEYE_LENGTH = 1944;
 	const DATA_TEXTURE_ARR_SIZE = 3888 * 1944 * 4;
 
@@ -20,6 +20,7 @@ function DomeView ( dome ) {
 	this.dewarpEngine = DewarpEngine.createInstance( this.offScreenCtx.fisheyeSrcArr );
 
 	this.dome = dome;
+	this.controller = controller;
 
 	function createRenderingContext () {
 		const domContainer = document.createElement( 'div' );
@@ -106,6 +107,7 @@ DomeView.prototype = ( function () {
 		render: function () {
 			requestAnimationFrame( () => this.render() );
 			dewarpFrame.call( this );
+			// this.dome.update();
 			this.renderingContext.renderer.render( this.renderingContext.scene, this.renderingContext.camera );
 		}
 	};
