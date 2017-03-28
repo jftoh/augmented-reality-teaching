@@ -25,3 +25,12 @@ EnvObject.prototype.addObject = function ( envObject ) {
 	this.children.set( envObject.name, envObject );
 	this.notify( 'ObjectAdded', { "object": envObject } );
 };
+
+EnvObject.prototype.removeObject = function ( envObject ) {
+	this.children.delete( envObject.name );
+	this.notify( 'ObjectDeleted', { "object": envObject } );
+};
+
+EnvObject.prototype.getChildByName = function ( objectName ) {
+	return this.children.get( objectName );
+};
