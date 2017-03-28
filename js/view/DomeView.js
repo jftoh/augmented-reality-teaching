@@ -95,6 +95,10 @@ DomeView.prototype = ( function () {
 				this.controller.toggleEffect();
 				e.preventDefault();
 				break;
+			case '1':
+				this.controller.displayJSON();
+				e.preventDefault();
+				break;
 			default:
 				return;
 		}

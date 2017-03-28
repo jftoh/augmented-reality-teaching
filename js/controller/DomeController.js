@@ -13,6 +13,10 @@ function DomeController ( dome ) {
 	this.domeView.renderingContext.scene.add( this.transformControls );
 
 	this.editMode = false;
+	this.configDisplayMode = false;
+
+	this.parser = new Parser();
+	this.configDisplay = new ConfigDisplay();
 }
 
 DomeController.prototype = ( function () {
@@ -100,6 +104,20 @@ DomeController.prototype = ( function () {
 					object.visible = !object.visible;
 				}
 			} );
+		},
+
+		saveToJSON: function () {
+			alert( this.parser.parse( this.dome ) );
+		},
+
+		displayJSON: function () {
+			if ( this.configDisplayMode ) {
+				this.configDisplay.turnOffDisplay();
+				this.configDisplayMode = false;
+			} else {
+				this.configDisplay.turnOnDisplay();
+				this.configDisplayMode = true;
+			}
 		}
 	};
 } )();

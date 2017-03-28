@@ -11,7 +11,7 @@
  	<script type="text/javascript" src="js/view/controls/HeadsUpDisplay.js"></script>
 	<script type="text/javascript" src="js/lib/gpu.min.js"></script>
 	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-	<link rel="stylesheet" href="css/infobar.css">
+	<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 	<video style="display: none"></video>
@@ -21,6 +21,9 @@
 			<li id="currObject"> Current Object on Focus: none</li>
 		</ul>
 	</div>
+
+	<div id='black-overlay'></div>
+	<div id='config-content'></div>
 
 	<script type="text/javascript" src="js/Observable.js"></script>
 	<script type="text/javascript" src="js/ObjectFactory.js"></script>
@@ -50,7 +53,13 @@
 
 	<script type="text/javascript" src="js/view/DomeView.js"></script>
 
+	<script type="text/javascript" src="js/file/Parser.js"></script>
+
+	<script type="text/javascript" src="js/display/ConfigDisplay.js"></script>
+
 	<script type="text/javascript" src="js/main.js"></script>
 	<script type="text/javascript" src="config/testconfig.js"></script>
+
+
 </body>
 </html>
