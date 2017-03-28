@@ -1,7 +1,8 @@
-const domeView = new DomeView();
+const dome = new Dome();
+const domeView = new DomeView( dome );
 domeView.init();
 
-const domeController = new DomeController( domeView );
+const domeController = new DomeController( dome, domeView );
 const customModelFactory = new CustomModelFactory();
 
 var config = {
@@ -13,6 +14,22 @@ var config = {
 			'classType': 'CustomModel',
 			'assetFileType': 'json',
 			'assetDirectory': 'assets/router_2.json'
+		},
+
+		{
+			'name': 'scale',
+			'coordinates': [ -5, 20, 5 ],
+			'classType': 'CustomModel',
+			'assetFileType': 'js',
+			'assetDirectory': 'assets/multimaterial.js'
+		},
+
+		{
+			'name': 'arrowhead',
+			'coordinates': [ 0, 30, 10 ],
+			'classType': 'CustomModel',
+			'assetFileType': 'js',
+			'assetDirectory': 'assets/arrowhead.js'
 		},
 
 		{

@@ -28,16 +28,13 @@ function Dome () {
 Dome.prototype = Object.create( THREE.Mesh.prototype );
 Dome.prototype.constructor = Dome;
 
-Dome.prototype.addChild = function ( child ) {
-	child.parent = this;
-	this.add( child );
-};
-
-Dome.prototype.removeChild = function ( child ) {
-	this.remove( child );
-};
-
 Dome.prototype.updateDataTexture = function ( pixelArr ) {
 	this.dataTextureArr.set( pixelArr );
 	this.dataTexture.needsUpdate = true;
+};
+
+Dome.prototype.presentNextObject = function () {
+	let currObject = this.children.shift();
+	this.children.push( currObject );
+	return currObject;
 };

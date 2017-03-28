@@ -3,7 +3,7 @@
  * @param { DomeController } controller reference to dome controller
  * @param { Dome } dome       reference to dome model
  */
-function DomeView () {
+function DomeView ( dome ) {
 	const FISHEYE_LENGTH = 1944;
 	const DATA_TEXTURE_ARR_SIZE = 3888 * 1944 * 4;
 
@@ -19,7 +19,7 @@ function DomeView () {
 	// conversion of fisheye image into a panorama
 	this.dewarpEngine = DewarpEngine.createInstance( this.offScreenCtx.fisheyeSrcArr );
 
-	this.dome = new Dome();
+	this.dome = dome;
 
 	function createRenderingContext () {
 		const domContainer = document.createElement( 'div' );
@@ -52,15 +52,6 @@ DomeView.prototype = ( function () {
 	};
 
 	/**
-	 * [focusOnObject description]
-	 * @param  {[type]} e [description]
-	 * @return {[type]}   [description]
-	 */
-	var focusOnObject = function ( e ) {
-		this.controller.updateCameraFocus( e.object );
-	};
-
-	/**
 	 * [handleKeyDown description]
 	 * @param  {[type]} e [description]
 	 * @return {[type]}   [description]
@@ -75,13 +66,16 @@ DomeView.prototype = ( function () {
 				this.controller.returnToNavigationMode();
 				e.preventDefault();
 				break;
+			case 'Backspace':
+				this.controller.removeObject();
+				e.preventDefault();
+				break;
 			case 't':
 			case 's':
 			case 'r':
 				this.controller.toggleTransformMode( e.key );
 				e.preventDefault();
 				break;
-
 			case 'e':
 				this.controller.toggleEffect();
 				e.preventDefault();
@@ -98,13 +92,10 @@ DomeView.prototype = ( function () {
 		 * Initializes the view.
 		 */
 		init: function () {
-			const scene = this.renderingContext.scene;
-
-			scene.add( this.dome );
+			this.renderingContext.scene.add( this.dome );
 
 			window.addEventListener( 'resize', ( e ) => onWindowResize.call( this ), false );
-
-			// window.addEventListener( 'keydown', ( e ) => handleKeyDown.call( this, e ) );
+			window.addEventListener( 'keydown', ( e ) => handleKeyDown.call( this, e ) );
 
 			this.videoContext.videofeed.onloadedmetadata = () => this.render();
 		},
