@@ -13,6 +13,10 @@ ConfigDisplay.prototype = ( function () {
 		turnOffDisplay: function () {
 			this.overlay.style.display = 'none';
 			this.displayContent.style.display = 'none';
+		},
+
+		setDisplayText: function ( text ) {
+			this.displayContent.innerHTML = text;
 		}
 	};
 } )();

@@ -114,7 +114,11 @@ DomeController.prototype = ( function () {
 			if ( this.configDisplayMode ) {
 				this.configDisplay.turnOffDisplay();
 				this.configDisplayMode = false;
+				this.orbitControls.enabled = true;
 			} else {
+				this.orbitControls.enabled = false;
+				let displayJson = this.parser.parse( this.dome );
+				this.configDisplay.setDisplayText( displayJson );
 				this.configDisplay.turnOnDisplay();
 				this.configDisplayMode = true;
 			}

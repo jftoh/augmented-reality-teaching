@@ -13,7 +13,7 @@ Parser.prototype = ( function () {
 
 			var compiledObject = { 'objects': objArr };
 
-			return JSON.stringify( compiledObject );
+			return JSON.stringify( compiledObject, null, '\t' );
 		}
 	};
 } )();
