@@ -99,6 +99,10 @@ DomeView.prototype = ( function () {
 				this.controller.displayJSON();
 				e.preventDefault();
 				break;
+			case '2':
+				this.controller.displayFileDialog();
+				e.preventDefault();
+				break;
 			default:
 				return;
 		}

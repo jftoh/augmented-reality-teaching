@@ -17,6 +17,7 @@ function DomeController ( dome ) {
 
 	this.parser = new Parser();
 	this.configDisplay = new ConfigDisplay();
+	this.configLoader = new ConfigLoader();
 }
 
 DomeController.prototype = ( function () {
@@ -122,6 +123,10 @@ DomeController.prototype = ( function () {
 				this.configDisplay.turnOnDisplay();
 				this.configDisplayMode = true;
 			}
+		},
+
+		displayFileDialog: function () {
+			this.configLoader.toggleFileDialog();
 		}
 	};
 } )();
