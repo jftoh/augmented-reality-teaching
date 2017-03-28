@@ -19,8 +19,6 @@ function DomeViewMediator ( dome, mediatorFactory ) {
 
     this.view.add( domeObj );
 
-    this.objectFocusQueue = [];
-
     /**
      * instantiates a THREE.js 3D object representing the dome environment.
      * @param  {[type]} radius      [description]
@@ -68,17 +66,8 @@ DomeViewMediator.prototype.updateDataTexture = function ( pixelArr ) {
 	this.dataTexture.needsUpdate = true;
 };
 
-DomeViewMediator.prototype.addChild = function ( child ) {
-    const mediator = this.mediatorFactory.getMediator( child );
-
-    this.objectFocusQueue.push( mediator.view );
-
-    this.childMediators.set( child, mediator );
-    this.view.children[ 0 ].add( mediator.view );
-
-    for ( let childOfChild in child.objects ) {
-        mediator.addChild( childofChild );
-    }
+DomeViewMediator.prototype.getChildMediatorView = function ( child ) {
+    return this.childMediators.get( child ).view;
 };
 
 DomeViewMediator.prototype.focusOnNextObject = function () {

@@ -14,6 +14,7 @@ var ViewMediator = function ( object, mediatorFactory ) {
     this.mediatorFactory = mediatorFactory;
 
     this.object.addObserver( 'ObjectAdded', ( e ) => this.onObjectAdded( e ) );
+    this.object.addObserver( 'ObjectRemoved', ( e ) => this.onObjectRemoved( e ) );
 
     // Three.js View
     this.view = this.createView();
@@ -78,4 +79,8 @@ ViewMediator.prototype.onFrameRendered = function () {
 
 ViewMediator.prototype.onObjectAdded = function ( e ) {
     this.addChild( e.object );
+};
+
+ViewMediator.prototype.onObjectRemoved = function ( e ) {
+    this.removeChild( e.object );
 };

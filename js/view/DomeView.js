@@ -73,11 +73,17 @@ DomeView.prototype = ( function () {
 	var handleKeyDown = function ( e ) {
 		switch ( e.key ) {
 			case 'Tab':
+				this.controller.editMode = true;
 				this.controller.cycleObjects();
 				e.preventDefault();
 				break;
 			case 'Escape':
+				this.controller.editMode = false;
 				this.controller.returnToNavigationMode();
+				e.preventDefault();
+				break;
+			case 'Backspace':
+				this.controller.removeObjectFromScene();
 				e.preventDefault();
 				break;
 			case 't':

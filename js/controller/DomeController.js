@@ -11,6 +11,8 @@ function DomeController ( dome ) {
 	this.transformControls = new THREE.TransformControls( this.domeView.renderingContext.camera,
 														  this.domeView.renderingContext.renderer.domElement );
 	this.domeView.renderingContext.scene.add( this.transformControls );
+
+	this.editMode = false;
 }
 
 DomeController.prototype = ( function () {
@@ -26,23 +28,45 @@ DomeController.prototype = ( function () {
 		constructor: DomeController,
 
 		cycleObjects: function () {
-			let currObject = this.domeView.domeViewMediator.focusOnNextObject();
-			this.transformControls.attach( currObject );
+			let currObjModel = this.dome.focusOnNextChild();
+			let currObjView = this.domeView.domeViewMediator.getChildMediatorView( currObjModel );
+
+			this.transformControls.attach( currObjView );
 			this.domeView.hud.domContainer.style.visibility = 'visible';
-			setCurrObjDisplayText.call( this, currObject.name );
+			setCurrObjDisplayText.call( this, currObjView.name );
 			setTransformModeDisplayText.call( this, 'translate' );
+
+			this.updateCameraFocus( currObjView );
 		},
 
 		returnToNavigationMode: function () {
-			this.transformControls.detach();
-			this.orbitControls.reset();
-			this.domeView.hud.domContainer.style.visibility = 'hidden';
-			setCurrObjDisplayText.call( this, 'none' );
+			if ( this.editMode ) {
+				this.transformControls.detach();
+				this.orbitControls.reset();
+				this.domeView.hud.domContainer.style.visibility = 'hidden';
+				setCurrObjDisplayText.call( this, 'none' );
+			}
 		},
 
 		updateCameraFocus: function ( object ) {
 			this.orbitControls.target.copy( object.position );
 			this.orbitControls.update();
+		},
+
+		removeObjectFromScene: function () {
+			if ( this.editMode ) {
+				let currObjectView = this.transformControls.object;
+				let currObjectModel = this.dome.getChildByName( currObjectView.name );
+
+				this.dome.removeObject( currObjectModel );
+
+				if ( this.dome.hasNoChildren() ) {
+					this.returnToNavigationMode();
+				} else {
+					this.cycleObjects();
+				}
+			}
+
 		},
 
 		toggleTransformMode: function ( mode ) {
