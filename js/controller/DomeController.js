@@ -49,9 +49,13 @@ DomeController.prototype = ( function () {
 			if ( this.editMode ) {
 				this.transformControls.detach();
 				this.orbitControls.reset();
+
 				this.domeView.hud.domContainer.style.visibility = 'hidden';
 				setCurrObjDisplayText.call( this, 'none' );
+
 				this.editMode = false;
+
+				this.dome.notify( 'UpdateModels', {} );
 			}
 		},
 
