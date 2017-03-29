@@ -32,17 +32,19 @@ DomeController.prototype = ( function () {
 		constructor: DomeController,
 
 		cycleObjects: function () {
-			this.editMode = true;
+			if ( !this.dome.hasNoChildren() ) {
+				this.editMode = true;
 
-			let currObjModel = this.dome.focusOnNextChild();
-			let currObjView = this.domeView.domeViewMediator.getChildMediatorView( currObjModel );
+				let currObjModel = this.dome.focusOnNextChild();
+				let currObjView = this.domeView.domeViewMediator.getChildMediatorView( currObjModel );
 
-			this.transformControls.attach( currObjView );
-			this.domeView.hud.domContainer.style.visibility = 'visible';
-			setCurrObjDisplayText.call( this, currObjView.name );
-			setTransformModeDisplayText.call( this, 'translate' );
+				this.transformControls.attach( currObjView );
+				this.domeView.hud.domContainer.style.visibility = 'visible';
+				setCurrObjDisplayText.call( this, currObjView.name );
+				setTransformModeDisplayText.call( this, 'translate' );
 
-			this.updateCameraFocus( currObjView );
+				this.updateCameraFocus( currObjView );
+			}
 		},
 
 		returnToNavigationMode: function () {
@@ -108,7 +110,7 @@ DomeController.prototype = ( function () {
 		toggleEffect: function () {
 			let currObjView = this.transformControls.object;
 			currObjView.traverse( function ( childView ) {
-				if ( childView.object.className.includes( 'Effect' ) ) {
+				if ( childView.className.includes( 'Effect' ) ) {
 					childView.visible = !childView.visible;
 				}
 			} );
