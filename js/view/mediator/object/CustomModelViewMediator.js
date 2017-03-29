@@ -37,6 +37,7 @@ CustomModelViewMediator.prototype.createView = function () {
 				function ( geometry, materials ) {
 					let material = new THREE.MultiMaterial( materials );
 					let mesh = new THREE.Mesh( geometry, material );
+					mesh.scale.set( scale[ 0 ], scale[ 1 ], scale[ 2 ] );
 					container.add( mesh );
 				}
 			);
@@ -49,6 +50,7 @@ CustomModelViewMediator.prototype.createView = function () {
 			fileLoader.load(
 				configFilePath,
 				function ( obj ) {
+					obj.scale.set( scale[ 0 ], scale[ 1 ], scale[ 2 ] );
 					container.add( obj );
 				}
 			);
@@ -60,6 +62,8 @@ CustomModelViewMediator.prototype.createView = function () {
 			fileLoader.load(
 				configFilePath,
 				function ( obj ) {
+					obj.scale.set( scale[ 0 ], scale[ 1 ], scale[ 2 ] );
+
 					container.add( obj );
 				}
 			);
@@ -79,6 +83,8 @@ CustomModelViewMediator.prototype.createView = function () {
 					objLoader.setPath( configFilePath );
 					objLoader.load( ( name + '.obj' ),
 					                function ( obj ) {
+					                	obj.scale.set( scale[ 0 ], scale[ 1 ], scale[ 2 ] );
+
 										container.add( obj );
 								    } );
 				}
@@ -88,7 +94,6 @@ CustomModelViewMediator.prototype.createView = function () {
 	}
 
 	container.position.set( coords[ 0 ], coords[ 1 ], coords[ 2 ] );
-	container.scale.set( scale[ 0 ], scale[ 1 ], scale[ 2 ] );
 	container.rotation.set( rotation[ 0 ], rotation[ 1 ], rotation[ 2 ] );
 
 	return container;

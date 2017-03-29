@@ -1,0 +1,16 @@
+{
+	"objects":
+	[
+		{
+			"name": "iphone",
+			"className": "CustomModel",
+			"properties":
+			{
+				"filetype": "objmtl",
+				"coordinates": [ 10, 10, 10 ],
+				"scaleRatio": [ 1.5, 1.5, 1.5 ],
+				"filepath": "../assets/iphone/"
+			}
+		}
+	]
+}

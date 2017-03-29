@@ -1,0 +1,66 @@
+# Octane Exporter for CINEMA 4D
+# Exported on 20.11.2010
+
+newmtl __default
+  Kd 0.9 0.8 0.6
+  Ns 0
+  d 1
+  Ni 1
+  Tf 1 1 1
+  illum 1
+
+newmtl wirel
+  Kd 0.00098598315 0.00098598315 0.00098598315
+  Ks 0.2 0.2 0.2
+  Ns 2
+  d 1
+  Ni 1
+  Tf 1 1 1
+  illum 2
+
+newmtl texte
+  Kd 0.0013483571 0.31108631 1
+  Ks 0.2 0.2 0.2
+  Ns 2
+  d 1
+  Ni 1
+  Tf 1 1 1
+  illum 2
+
+newmtl ruber
+  Kd 0.0058704451 0.0058704451 0.0058704451
+  Ks 0.2 0.2 0.2
+  Ns 2
+  d 1
+  Ni 1
+  Tf 1 1 1
+  illum 2
+
+newmtl panel
+  Kd 0.0058704451 0.0058704451 0.0058704451
+  Ks 0.2 0.2 0.2
+  Ns 2
+  d 1
+  Ni 1
+  Tf 1 1 1
+  illum 2
+
+newmtl front
+  Kd 0.0012460135 0.00067711441 0.50217735
+  Ks 0.2 0.2 0.2
+  Ns 2
+  d 1
+  Ni 1
+  Tf 1 1 1
+  illum 2
+
+newmtl back
+  Kd 0.082985893 0.082985893 0.082985893
+  Ks 0.2 0.2 0.2
+  Ns 2
+  d 1
+  Ni 1
+  Tf 1 1 1
+  illum 2
+
+  -s u 10 10 10

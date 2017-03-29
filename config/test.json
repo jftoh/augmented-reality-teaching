@@ -1,13 +1,14 @@
 {
 	"objects":  [
 		{
-			"name": "router",
+			"name": "linksys",
 			"className": "CustomModel",
 			"properties":
 			{
-				"filetype": "json",
+				"filetype": "objmtl",
 				"coordinates": [ 5, 10, -45 ],
-				"filepath": "../assets/router_2.json"
+				"filepath": "../assets/linksys/",
+				"scaleRatio": [ 10, 10, 10 ]
 			}
 		},
 
@@ -29,6 +30,7 @@
 			{
 				"filetype": "objmtl",
 				"coordinates": [ 20, 20, -30 ],
+				"scaleRatio": [ 4, 4, 4 ],
 				"filepath": "../assets/Lowpoly_Notebook_2/"
 			}
 		}
@@ -39,7 +41,7 @@
 			"name": "radiate_router",
 			"className": "RadiateEffect",
 			"properties": {
-				"parentobj": "router",
+				"parentobj": "linksys",
 				"color": "0x00ff00",
 				"rateOfGrowth": 0.05
 			}
