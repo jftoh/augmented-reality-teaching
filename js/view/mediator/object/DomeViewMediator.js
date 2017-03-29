@@ -20,6 +20,7 @@ function DomeViewMediator ( dome, mediatorFactory ) {
     this.view.add( domeObj );
 
     this.object.addObserver( 'UpdateModels', ( e ) => this.updateAllChildModels() );
+    this.object.addObserver( 'AllObjectsRemoved', ( e ) => this.removeAllChildViews( e ) );
 
     /**
      * instantiates a THREE.js 3D object representing the dome environment.
@@ -80,5 +81,11 @@ DomeViewMediator.prototype.updateAllChildModels = function () {
 
         child.properties.coordinates = [ view.position.x, view.position.y, view.position.z ];
         childModels.set( childName, child );
+    }
+};
+
+DomeViewMediator.prototype.removeAllChildViews = function ( e ) {
+    for ( let object of e.objects ) {
+        this.removeChild( object );
     }
 };

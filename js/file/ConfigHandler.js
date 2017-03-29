@@ -21,10 +21,11 @@ ConfigHandler.prototype = ( function () {
 			var obj = null;
 
 			reader.addEventListener( 'load', ( e ) => {
+				this.fileDialog.value = "";
 				let loadedObject = e.target.result;
 				let parsedObject = this.parser.parseFromJSON( loadedObject );
-				let objectArray = parsedObject.objects;
-				let effectArray = parsedObject.effects;
+				let objectArray = parsedObject.objects ? parsedObject.objects : [];
+				let effectArray = parsedObject.effects ? parsedObject.effects : [];
 
 				this.objectFactory.addObjectsToDome( objectArray );
 				this.objectFactory.addEffectsToDome( effectArray );

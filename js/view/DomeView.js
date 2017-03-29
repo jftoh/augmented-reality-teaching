@@ -81,7 +81,14 @@ DomeView.prototype = ( function () {
 				e.preventDefault();
 				break;
 			case 'Backspace':
-				this.controller.removeObjectFromScene();
+				if ( !e.ctrlKey ) {
+					this.controller.removeObjectFromScene();
+					e.preventDefault();
+					break;
+				} else {
+					this.controller.removeAllObjects();
+				}
+
 				e.preventDefault();
 				break;
 			case 't':

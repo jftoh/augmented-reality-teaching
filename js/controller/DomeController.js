@@ -80,6 +80,10 @@ DomeController.prototype = ( function () {
 
 		},
 
+		removeAllObjects: function () {
+			this.dome.removeAllObjects();
+		},
+
 		toggleTransformMode: function ( mode ) {
 			let displayText;
 
@@ -102,10 +106,10 @@ DomeController.prototype = ( function () {
 		},
 
 		toggleEffect: function () {
-			let currObject = this.transformControls.object;
-			currObject.traverse( function ( object ) {
-				if ( object.name.includes( 'radiate' ) ) {
-					object.visible = !object.visible;
+			let currObjView = this.transformControls.object;
+			currObjView.traverse( function ( childView ) {
+				if ( childView.object.className.includes( 'Effect' ) ) {
+					childView.visible = !childView.visible;
 				}
 			} );
 		},
@@ -125,7 +129,9 @@ DomeController.prototype = ( function () {
 		},
 
 		displayFileDialog: function () {
-			this.configHandler.toggleFileDialog();
+			if ( !this.editMode ) {
+				this.configHandler.toggleFileDialog();
+			}
 		}
 	};
 } )();
