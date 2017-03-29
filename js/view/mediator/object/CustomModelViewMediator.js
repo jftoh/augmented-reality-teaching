@@ -19,7 +19,11 @@ CustomModelViewMediator.prototype.addChild = function ( child ) {
 CustomModelViewMediator.prototype.createView = function () {
 	const container = new THREE.Object3D();
 	const configFilePath = this.object.properties.filepath;
-	const coords = this.object.properties.coordinates;
+
+	const coords = this.object.properties.coordinates ? this.object.properties.coordinates : [ 0, 0, 5 ] ;
+	const scale = this.object.properties.scaleRatio ? this.object.properties.scaleRatio : [ 1.0, 1.0, 1.0 ];
+	const rotation = this.object.properties.rotation ? this.object.properties.rotation : [ 0, 0, 0 ];
+
 	const name = this.object.name;
 
 	var fileLoader;
@@ -84,6 +88,9 @@ CustomModelViewMediator.prototype.createView = function () {
 	}
 
 	container.position.set( coords[ 0 ], coords[ 1 ], coords[ 2 ] );
+	container.scale.set( scaleRatio[ 0 ], scaleRatio[ 1 ], scaleRatio[ 2 ] );
+	container.rotation.set( rotation[ 0 ], rotation[ 1 ], rotation[ 2 ] );
+
 	return container;
 };
 

@@ -80,6 +80,8 @@ DomeViewMediator.prototype.updateAllChildModels = function () {
         let view = this.getChildMediatorView( child );
 
         child.properties.coordinates = [ view.position.x, view.position.y, view.position.z ];
+        child.properties.scaleRatio = [ view.scale.x, view.scale.y, view.scale.z ];
+        child.properties.rotation = [ view.rotation.x, view.rotation.y, view.rotation.z ];
         childModels.set( childName, child );
     }
 };
