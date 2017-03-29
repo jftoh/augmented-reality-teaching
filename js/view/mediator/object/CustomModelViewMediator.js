@@ -88,7 +88,7 @@ CustomModelViewMediator.prototype.createView = function () {
 	}
 
 	container.position.set( coords[ 0 ], coords[ 1 ], coords[ 2 ] );
-	container.scale.set( scaleRatio[ 0 ], scaleRatio[ 1 ], scaleRatio[ 2 ] );
+	container.scale.set( scale[ 0 ], scale[ 1 ], scale[ 2 ] );
 	container.rotation.set( rotation[ 0 ], rotation[ 1 ], rotation[ 2 ] );
 
 	return container;

@@ -17,7 +17,7 @@ Parser.prototype = ( function () {
 
 			var compiledObject = { 'objects': objArr };
 
-			return JSON.stringify( compiledObject, null, '\t' );
+			return JSON.stringify( compiledObject, null, 4 );
 		},
 
 		parseFromJSON: function ( loadedObject ) {
