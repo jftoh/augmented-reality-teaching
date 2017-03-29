@@ -15,9 +15,8 @@ function DomeController ( dome ) {
 	this.editMode = false;
 	this.configDisplayMode = false;
 
-	this.parser = new Parser();
 	this.configDisplay = new ConfigDisplay();
-	this.configLoader = new ConfigLoader();
+	this.configHandler = new ConfigHandler( dome );
 }
 
 DomeController.prototype = ( function () {
@@ -107,10 +106,6 @@ DomeController.prototype = ( function () {
 			} );
 		},
 
-		saveToJSON: function () {
-			alert( this.parser.parse( this.dome ) );
-		},
-
 		displayJSON: function () {
 			if ( this.configDisplayMode ) {
 				this.configDisplay.turnOffDisplay();
@@ -118,7 +113,7 @@ DomeController.prototype = ( function () {
 				this.orbitControls.enabled = true;
 			} else {
 				this.orbitControls.enabled = false;
-				let displayJson = this.parser.parse( this.dome );
+				let displayJson = this.configHandler.convertToJSON( this.dome );
 				this.configDisplay.setDisplayText( displayJson );
 				this.configDisplay.turnOnDisplay();
 				this.configDisplayMode = true;
@@ -126,7 +121,7 @@ DomeController.prototype = ( function () {
 		},
 
 		displayFileDialog: function () {
-			this.configLoader.toggleFileDialog();
+			this.configHandler.toggleFileDialog();
 		}
 	};
 } )();

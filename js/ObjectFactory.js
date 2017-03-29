@@ -48,21 +48,31 @@ ObjectFactory.prototype = ( function ()  {
 	return {
 		constructor: ObjectFactory,
 
-		addObject: function ( objectName, objectType, properties ) {
+		addObjectsToDome: function ( objects ) {
+			for ( let i = 0; i < objects.length; i++ ) {
+				let object = objects[ i ];
+				this.addObject( object );
+			}
+		},
+
+		addObject: function ( object ) {
+			let objectName = object.name;
+			let objectType = object.className;
+			let objectProps = object.properties;
+
 			if ( objectExists.call( this, objectName ) ) {
-				console.error( 'Object already exists. Please try a different name' );
+				console.error( objectName + ' already exists. Please try a different name' );
 			} else {
-				let objToBeAdded = getObject.call( this, objectName, objectType, properties );
+				let objToBeAdded = getObject.call( this, objectName, objectType, objectProps );
 				this.dome.addObject( objToBeAdded );
 			}
-
 		},
 
 		addEffect: function ( effectName, effectType, properties ) {
 			if ( isStandaloneEffect.call( this, properties ) ) {
 				this.addObject( effectName, effectType, properties );
 			} else {
-				attachEffectToObject.call( this, effectName, effectType, properties );
+				attachEffectToObject.call( this, effectName, effectType, objectProps );
 			}
 		}
 	};
