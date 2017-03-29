@@ -20,6 +20,29 @@
 				"coordinates": [ 40, 10, -30 ],
 				"filepath": "../assets/pc/"
 			}
+		},
+
+		{
+			"name": "Lowpoly_Notebook_2",
+			"className": "CustomModel",
+			"properties":
+			{
+				"filetype": "objmtl",
+				"coordinates": [ 20, 20, -30 ],
+				"filepath": "../assets/Lowpoly_Notebook_2/"
+			}
+		}
+	],
+
+	"effects": [
+		{
+			"name": "radiate_router",
+			"className": "RadiateEffect",
+			"properties": {
+				"parentobj": "router",
+				"color": "0x00ff00",
+				"rateOfGrowth": 0.05
+			}
 		}
 	]
 }

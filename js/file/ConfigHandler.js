@@ -22,9 +22,12 @@ ConfigHandler.prototype = ( function () {
 
 			reader.addEventListener( 'load', ( e ) => {
 				let loadedObject = e.target.result;
-				let objectArray = this.parser.parseFromJSON( loadedObject ).objects;
+				let parsedObject = this.parser.parseFromJSON( loadedObject );
+				let objectArray = parsedObject.objects;
+				let effectArray = parsedObject.effects;
 
 				this.objectFactory.addObjectsToDome( objectArray );
+				this.objectFactory.addEffectsToDome( effectArray );
 			} );
 
 			reader.readAsText( configFile );

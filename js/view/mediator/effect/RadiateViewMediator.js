@@ -6,7 +6,7 @@ RadiateViewMediator.prototype = Object.create( ViewMediator.prototype );
 RadiateViewMediator.prototype.constructor = RadiateViewMediator;
 
 RadiateViewMediator.prototype.createView = function () {
-	const effectColor = this.object.properties.color;
+	const effectColor = parseInt( this.object.properties.color );
 	const coords = this.hasCoordinates() ? this.object.properties.coordinates : undefined;
 	const mesh = new THREE.Mesh (
 		new THREE.SphereGeometry( 10, 32, 32 ),

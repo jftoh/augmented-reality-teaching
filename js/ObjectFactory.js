@@ -21,7 +21,7 @@ ObjectFactory.prototype = ( function ()  {
 				return new CustomModel( objectName, properties );
 
 			/* Scene Effects */
-			case 'Radiate':
+			case 'RadiateEffect':
 				return new RadiateEffect( objectName, properties );
 
 			/* Default Case */
@@ -55,6 +55,13 @@ ObjectFactory.prototype = ( function ()  {
 			}
 		},
 
+		addEffectsToDome: function ( effects ) {
+			for ( let i = 0; i < effects.length; i++ ) {
+				let effect = effects[ i ];
+				this.addEffect( effect );
+			}
+		},
+
 		addObject: function ( object ) {
 			let objectName = object.name;
 			let objectType = object.className;
@@ -68,11 +75,14 @@ ObjectFactory.prototype = ( function ()  {
 			}
 		},
 
-		addEffect: function ( effectName, effectType, properties ) {
-			if ( isStandaloneEffect.call( this, properties ) ) {
-				this.addObject( effectName, effectType, properties );
+		addEffect: function ( effect ) {
+			let effectName = effect.name;
+			let effectType = effect.className;
+			let effectProps = effect.properties;
+			if ( isStandaloneEffect.call( this, effectProps ) ) {
+				this.addObject( effectName, effectType, effectProps );
 			} else {
-				attachEffectToObject.call( this, effectName, effectType, objectProps );
+				attachEffectToObject.call( this, effectName, effectType, effectProps );
 			}
 		}
 	};
