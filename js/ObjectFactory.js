@@ -21,7 +21,7 @@ ObjectFactory.prototype = ( function ()  {
 				return new CustomModel( objectName, properties );
 
 			/* Scene Effects */
-			case 'Radiate':
+			case 'RadiateEffect':
 				return new RadiateEffect( objectName, properties );
 
 			/* Default Case */
@@ -48,21 +48,41 @@ ObjectFactory.prototype = ( function ()  {
 	return {
 		constructor: ObjectFactory,
 
-		addObject: function ( objectName, objectType, properties ) {
-			if ( objectExists.call( this, objectName ) ) {
-				console.error( 'Object already exists. Please try a different name' );
-			} else {
-				let objToBeAdded = getObject.call( this, objectName, objectType, properties );
-				this.dome.addObject( objToBeAdded );
+		addObjectsToDome: function ( objects ) {
+			for ( let i = 0; i < objects.length; i++ ) {
+				let object = objects[ i ];
+				this.addObject( object );
 			}
-
 		},
 
-		addEffect: function ( effectName, effectType, properties ) {
-			if ( isStandaloneEffect.call( this, properties ) ) {
-				this.addObject( effectName, effectType, properties );
+		addEffectsToDome: function ( effects ) {
+			for ( let i = 0; i < effects.length; i++ ) {
+				let effect = effects[ i ];
+				this.addEffect( effect );
+			}
+		},
+
+		addObject: function ( object ) {
+			let objectName = object.name;
+			let objectType = object.className;
+			let objectProps = object.properties;
+
+			if ( objectExists.call( this, objectName ) ) {
+				console.error( objectName + ' already exists. Please try a different name' );
 			} else {
-				attachEffectToObject.call( this, effectName, effectType, properties );
+				let objToBeAdded = getObject.call( this, objectName, objectType, objectProps );
+				this.dome.addObject( objToBeAdded );
+			}
+		},
+
+		addEffect: function ( effect ) {
+			let effectName = effect.name;
+			let effectType = effect.className;
+			let effectProps = effect.properties;
+			if ( isStandaloneEffect.call( this, effectProps ) ) {
+				this.addObject( effectName, effectType, effectProps );
+			} else {
+				attachEffectToObject.call( this, effectName, effectType, effectProps );
 			}
 		}
 	};

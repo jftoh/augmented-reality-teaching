@@ -19,6 +19,7 @@ var ViewMediator = function ( object, mediatorFactory ) {
     // Three.js View
     this.view = this.createView();
     this.view.name = object.name;
+    this.view.className = object.className;
 
     this.childMediators = new Map();
 

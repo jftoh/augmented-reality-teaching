@@ -19,6 +19,9 @@ function DomeViewMediator ( dome, mediatorFactory ) {
 
     this.view.add( domeObj );
 
+    this.object.addObserver( 'UpdateModels', ( e ) => this.updateAllChildModels() );
+    this.object.addObserver( 'AllObjectsRemoved', ( e ) => this.removeAllChildViews( e ) );
+
     /**
      * instantiates a THREE.js 3D object representing the dome environment.
      * @param  {[type]} radius      [description]
@@ -70,11 +73,21 @@ DomeViewMediator.prototype.getChildMediatorView = function ( child ) {
     return this.childMediators.get( child ).view;
 };
 
-DomeViewMediator.prototype.focusOnNextObject = function () {
-    let currObject = this.objectFocusQueue.shift();
-    this.objectFocusQueue.push( currObject );
+DomeViewMediator.prototype.updateAllChildModels = function () {
+    var childModels = this.object.children;
 
-    this.object.notify( 'onObjectFocus', { "object": currObject } );
+    for ( let [ childName, child ] of childModels.entries() ) {
+        let view = this.getChildMediatorView( child );
 
-    return currObject;
+        child.properties.coordinates = [ view.position.x, view.position.y, view.position.z ];
+        child.properties.scaleRatio = [ view.scale.x, view.scale.y, view.scale.z ];
+        child.properties.rotation = [ view.rotation.x, view.rotation.y, view.rotation.z ];
+        childModels.set( childName, child );
+    }
+};
+
+DomeViewMediator.prototype.removeAllChildViews = function ( e ) {
+    for ( let object of e.objects ) {
+        this.removeChild( object );
+    }
 };

@@ -1,0 +1,51 @@
+{
+	"objects":  [
+		{
+			"name": "linksys",
+			"className": "CustomModel",
+			"properties":
+			{
+				"filetype": "objmtl",
+				"coordinates": [ 5, 10, -45 ],
+				"filepath": "assets/linksys/",
+				"scaleRatio": [ 10, 10, 10 ]
+			}
+		},
+
+
+		{
+			"name": "pc",
+			"className": "CustomModel",
+			"properties":
+			{
+				"filetype": "objmtl",
+				"coordinates": [ 40, 10, -30 ],
+				"filepath": "assets/pc/"
+			}
+		},
+
+		{
+			"name": "Lowpoly_Notebook_2",
+			"className": "CustomModel",
+			"properties":
+			{
+				"filetype": "objmtl",
+				"coordinates": [ 20, 20, -30 ],
+				"scaleRatio": [ 4, 4, 4 ],
+				"filepath": "assets/Lowpoly_Notebook_2/"
+			}
+		}
+	],
+
+	"effects": [
+		{
+			"name": "radiate_router",
+			"className": "RadiateEffect",
+			"properties": {
+				"parentobj": "linksys",
+				"color": "0x00ff00",
+				"rateOfGrowth": 0.05
+			}
+		}
+	]
+}

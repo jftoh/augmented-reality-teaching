@@ -19,7 +19,11 @@ CustomModelViewMediator.prototype.addChild = function ( child ) {
 CustomModelViewMediator.prototype.createView = function () {
 	const container = new THREE.Object3D();
 	const configFilePath = this.object.properties.filepath;
-	const coords = this.object.properties.coordinates;
+
+	const coords = this.object.properties.coordinates ? this.object.properties.coordinates : [ 0, 0, 5 ] ;
+	const scale = this.object.properties.scaleRatio ? this.object.properties.scaleRatio : [ 1.0, 1.0, 1.0 ];
+	const rotation = this.object.properties.rotation ? this.object.properties.rotation : [ 0, 0, 0 ];
+
 	const name = this.object.name;
 
 	var fileLoader;
@@ -33,6 +37,7 @@ CustomModelViewMediator.prototype.createView = function () {
 				function ( geometry, materials ) {
 					let material = new THREE.MultiMaterial( materials );
 					let mesh = new THREE.Mesh( geometry, material );
+					mesh.scale.set( scale[ 0 ], scale[ 1 ], scale[ 2 ] );
 					container.add( mesh );
 				}
 			);
@@ -45,6 +50,7 @@ CustomModelViewMediator.prototype.createView = function () {
 			fileLoader.load(
 				configFilePath,
 				function ( obj ) {
+					obj.scale.set( scale[ 0 ], scale[ 1 ], scale[ 2 ] );
 					container.add( obj );
 				}
 			);
@@ -56,6 +62,8 @@ CustomModelViewMediator.prototype.createView = function () {
 			fileLoader.load(
 				configFilePath,
 				function ( obj ) {
+					obj.scale.set( scale[ 0 ], scale[ 1 ], scale[ 2 ] );
+
 					container.add( obj );
 				}
 			);
@@ -75,6 +83,8 @@ CustomModelViewMediator.prototype.createView = function () {
 					objLoader.setPath( configFilePath );
 					objLoader.load( ( name + '.obj' ),
 					                function ( obj ) {
+					                	obj.scale.set( scale[ 0 ], scale[ 1 ], scale[ 2 ] );
+
 										container.add( obj );
 								    } );
 				}
@@ -84,6 +94,8 @@ CustomModelViewMediator.prototype.createView = function () {
 	}
 
 	container.position.set( coords[ 0 ], coords[ 1 ], coords[ 2 ] );
+	container.rotation.set( rotation[ 0 ], rotation[ 1 ], rotation[ 2 ] );
+
 	return container;
 };
 

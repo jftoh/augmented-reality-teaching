@@ -13,6 +13,10 @@ function DomeController ( dome ) {
 	this.domeView.renderingContext.scene.add( this.transformControls );
 
 	this.editMode = false;
+	this.configDisplayMode = false;
+
+	this.configDisplay = new ConfigDisplay();
+	this.configHandler = new ConfigHandler( dome );
 }
 
 DomeController.prototype = ( function () {
@@ -28,23 +32,32 @@ DomeController.prototype = ( function () {
 		constructor: DomeController,
 
 		cycleObjects: function () {
-			let currObjModel = this.dome.focusOnNextChild();
-			let currObjView = this.domeView.domeViewMediator.getChildMediatorView( currObjModel );
+			if ( !this.dome.hasNoChildren() ) {
+				this.editMode = true;
 
-			this.transformControls.attach( currObjView );
-			this.domeView.hud.domContainer.style.visibility = 'visible';
-			setCurrObjDisplayText.call( this, currObjView.name );
-			setTransformModeDisplayText.call( this, 'translate' );
+				let currObjModel = this.dome.focusOnNextChild();
+				let currObjView = this.domeView.domeViewMediator.getChildMediatorView( currObjModel );
 
-			this.updateCameraFocus( currObjView );
+				this.transformControls.attach( currObjView );
+				this.domeView.hud.domContainer.style.visibility = 'visible';
+				setCurrObjDisplayText.call( this, currObjView.name );
+				setTransformModeDisplayText.call( this, 'translate' );
+
+				this.updateCameraFocus( currObjView );
+			}
 		},
 
 		returnToNavigationMode: function () {
 			if ( this.editMode ) {
 				this.transformControls.detach();
 				this.orbitControls.reset();
+
 				this.domeView.hud.domContainer.style.visibility = 'hidden';
 				setCurrObjDisplayText.call( this, 'none' );
+
+				this.editMode = false;
+
+				this.dome.notify( 'UpdateModels', {} );
 			}
 		},
 
@@ -69,6 +82,10 @@ DomeController.prototype = ( function () {
 
 		},
 
+		removeAllObjects: function () {
+			this.dome.removeAllObjects();
+		},
+
 		toggleTransformMode: function ( mode ) {
 			let displayText;
 
@@ -91,12 +108,32 @@ DomeController.prototype = ( function () {
 		},
 
 		toggleEffect: function () {
-			let currObject = this.transformControls.object;
-			currObject.traverse( function ( object ) {
-				if ( object.name.includes( 'radiate' ) ) {
-					object.visible = !object.visible;
+			let currObjView = this.transformControls.object;
+			currObjView.traverse( function ( childView ) {
+				if ( childView.className.includes( 'Effect' ) ) {
+					childView.visible = !childView.visible;
 				}
 			} );
+		},
+
+		displayJSON: function () {
+			if ( this.configDisplayMode ) {
+				this.configDisplay.turnOffDisplay();
+				this.configDisplayMode = false;
+				this.orbitControls.enabled = true;
+			} else {
+				this.orbitControls.enabled = false;
+				let displayJson = this.configHandler.convertToJSON( this.dome );
+				this.configDisplay.setDisplayText( displayJson );
+				this.configDisplay.turnOnDisplay();
+				this.configDisplayMode = true;
+			}
+		},
+
+		displayFileDialog: function () {
+			if ( !this.editMode ) {
+				this.configHandler.toggleFileDialog();
+			}
 		}
 	};
 } )();

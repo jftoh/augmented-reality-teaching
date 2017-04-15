@@ -36,3 +36,9 @@ Dome.prototype.focusOnNextChild = function () {
 Dome.prototype.hasNoChildren = function () {
 	return this.children.size === 0;
 };
+
+Dome.prototype.removeAllObjects = function () {
+	this.notify( 'AllObjectsRemoved', { objects: this.children.values() } );
+	this.children.clear();
+	this.childQueue.length = 0;
+};

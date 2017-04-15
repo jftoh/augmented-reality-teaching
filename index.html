@@ -8,10 +8,9 @@
 	<script type="text/javascript" src="js/lib/MTLLoader.js"></script>
  	<script type="text/javascript" src="js/view/controls/OrbitControls.js"></script>
  	<script type="text/javascript" src="js/view/controls/TransformControls.js"></script>
- 	<script type="text/javascript" src="js/view/controls/HeadsUpDisplay.js"></script>
 	<script type="text/javascript" src="js/lib/gpu.min.js"></script>
 	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-	<link rel="stylesheet" href="css/infobar.css">
+	<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 	<video style="display: none"></video>
@@ -21,6 +20,24 @@
 			<li id="currObject"> Current Object on Focus: none</li>
 		</ul>
 	</div>
+
+	<div id='black-overlay'>
+			<button id='save-server'>Save Config to Server</button>
+			<button id='save-local'>Save Config as Local File</button>
+	</div>
+
+
+	<div id='config-overlay'>
+		<pre id='config-content' title='Current Configuration'>	</pre>
+
+	</div>
+
+
+	<input id='config-file'
+	       type='file'
+	       name='filedialog'
+	       accept='.json'
+	       style='display: none;' />
 
 	<script type="text/javascript" src="js/Observable.js"></script>
 	<script type="text/javascript" src="js/ObjectFactory.js"></script>
@@ -50,7 +67,14 @@
 
 	<script type="text/javascript" src="js/view/DomeView.js"></script>
 
+	<script type="text/javascript" src="js/file/Parser.js"></script>
+    <script type="text/javascript" src="js/file/ConfigHandler.js"></script>
+
+	<script type="text/javascript" src="js/display/ConfigDisplay.js"></script>
+	<script type="text/javascript" src="js/display/HeadsUpDisplay.js"></script>
+
 	<script type="text/javascript" src="js/main.js"></script>
-	<script type="text/javascript" src="config/testconfig.js"></script>
+
+
 </body>
 </html>

@@ -73,17 +73,22 @@ DomeView.prototype = ( function () {
 	var handleKeyDown = function ( e ) {
 		switch ( e.key ) {
 			case 'Tab':
-				this.controller.editMode = true;
 				this.controller.cycleObjects();
 				e.preventDefault();
 				break;
 			case 'Escape':
-				this.controller.editMode = false;
 				this.controller.returnToNavigationMode();
 				e.preventDefault();
 				break;
 			case 'Backspace':
-				this.controller.removeObjectFromScene();
+				if ( !e.ctrlKey ) {
+					this.controller.removeObjectFromScene();
+					e.preventDefault();
+					break;
+				} else {
+					this.controller.removeAllObjects();
+				}
+
 				e.preventDefault();
 				break;
 			case 't':
@@ -95,6 +100,14 @@ DomeView.prototype = ( function () {
 
 			case 'e':
 				this.controller.toggleEffect();
+				e.preventDefault();
+				break;
+			case '1':
+				this.controller.displayJSON();
+				e.preventDefault();
+				break;
+			case '2':
+				this.controller.displayFileDialog();
 				e.preventDefault();
 				break;
 			default:
