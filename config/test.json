@@ -7,10 +7,11 @@
 			{
 				"filetype": "objmtl",
 				"coordinates": [ 5, 10, -45 ],
-				"filepath": "../assets/linksys/",
+				"filepath": "assets/linksys/",
 				"scaleRatio": [ 10, 10, 10 ]
 			}
 		},
+
 
 		{
 			"name": "pc",
@@ -19,7 +20,7 @@
 			{
 				"filetype": "objmtl",
 				"coordinates": [ 40, 10, -30 ],
-				"filepath": "../assets/pc/"
+				"filepath": "assets/pc/"
 			}
 		},
 
@@ -31,7 +32,7 @@
 				"filetype": "objmtl",
 				"coordinates": [ 20, 20, -30 ],
 				"scaleRatio": [ 4, 4, 4 ],
-				"filepath": "../assets/Lowpoly_Notebook_2/"
+				"filepath": "assets/Lowpoly_Notebook_2/"
 			}
 		}
 	],
